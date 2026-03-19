@@ -1,0 +1,18 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+mechano.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Claude
+.claude/

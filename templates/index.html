@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mechano_app</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container header-inner">
+            <div class="logo">~/mechano_app<span class="cursor">_</span></div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-view="test">test</button>
+                <button class="nav-tab" data-view="learn">learn</button>
+                <button class="nav-tab" data-view="stats">stats</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- TEST VIEW -->
+    <section id="view-test" class="view active">
+        <div class="container">
+            <!-- Config Bar -->
+            <div class="config-bar">
+                <div class="config-group">
+                    <span class="config-label">mode</span>
+                    <button class="config-btn active" data-mode="words">words</button>
+                    <button class="config-btn" data-mode="passage">passage</button>
+                </div>
+                <div class="config-separator"></div>
+                <div class="config-group">
+                    <span class="config-label">time</span>
+                    <button class="config-btn" data-time="15">15s</button>
+                    <button class="config-btn" data-time="30">30s</button>
+                    <button class="config-btn active" data-time="60">60s</button>
+                    <button class="config-btn" data-time="120">2m</button>
+                </div>
+                <div class="config-separator"></div>
+                <div class="config-group">
+                    <button class="config-btn" id="btn-restart" title="restart (Tab+Enter)">restart</button>
+                </div>
+            </div>
+
+            <!-- Typing Area -->
+            <div class="typing-container" id="typing-container">
+                <div class="click-hint" id="click-hint">click here or press any key to start</div>
+                <div class="text-display-wrapper">
+                    <div class="text-display" id="text-display"></div>
+                </div>
+                <input
+                    type="text"
+                    class="hidden-input"
+                    id="hidden-input"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                >
+            </div>
+
+            <!-- Timer Bar -->
+            <div class="timer-bar-container">
+                <div class="timer-bar">
+                    <div class="timer-bar-fill" id="timer-bar-fill"></div>
+                </div>
+                <div class="timer-text" id="timer-text">60</div>
+            </div>
+
+            <!-- Live Stats -->
+            <div class="live-stats">
+                <div class="live-stat">
+                    <div class="live-stat-value wpm" id="live-wpm">0</div>
+                    <div class="live-stat-label">wpm</div>
+                </div>
+                <div class="live-stat">
+                    <div class="live-stat-value accuracy" id="live-accuracy">100</div>
+                    <div class="live-stat-label">accuracy %</div>
+                </div>
+                <div class="live-stat">
+                    <div class="live-stat-value errors" id="live-errors">0</div>
+                    <div class="live-stat-label">errors</div>
+                </div>
+                <div class="live-stat">
+                    <div class="live-stat-value streak" id="live-streak">0</div>
+                    <div class="live-stat-label">streak</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS VIEW -->
+    <section id="view-stats" class="view">
+        <div class="container">
+            <div class="stats-header">
+                <h2>Statistics</h2>
+            </div>
+
+            <div class="stats-overview" id="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-card-value accent" id="stat-total-tests">0</div>
+                    <div class="stat-card-label">tests taken</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value accent" id="stat-avg-wpm">0</div>
+                    <div class="stat-card-label">avg wpm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value green" id="stat-best-wpm">0</div>
+                    <div class="stat-card-label">best wpm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value green" id="stat-avg-accuracy">0</div>
+                    <div class="stat-card-label">avg accuracy %</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value yellow" id="stat-best-streak">0</div>
+                    <div class="stat-card-label">best streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value purple" id="stat-total-chars">0</div>
+                    <div class="stat-card-label">total chars</div>
+                </div>
+            </div>
+
+            <!-- WPM Chart -->
+            <div class="chart-container">
+                <div class="chart-title">WPM Over Last 30 Tests</div>
+                <div class="chart-canvas">
+                    <svg class="chart-svg" id="chart-wpm"></svg>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="history-container">
+                <div class="history-title">Recent History</div>
+                <table class="history-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>wpm</th>
+                            <th>accuracy</th>
+                            <th>streak</th>
+                            <th>mode</th>
+                            <th>time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+                <div class="empty-state" id="empty-state">no data yet — take your first test!</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LEARN VIEW -->
+    <section id="view-learn" class="view">
+        <div class="container">
+            <!-- Weak Keys Practice -->
+            <div id="weak-keys-section" class="weak-keys-section" style="display:none">
+                <div class="weak-keys-header">
+                    <h3>Practice Weak Keys</h3>
+                    <div class="weak-keys-tags" id="weak-keys-tags"></div>
+                </div>
+                <p class="weak-keys-desc">Words targeting the keys you miss most. Complete a few tests first to build your error profile.</p>
+                <button class="btn btn-primary" id="btn-start-weak-practice">start practice</button>
+            </div>
+
+            <!-- Weak Keys Active Practice -->
+            <div id="weak-practice-active" style="display:none">
+                <div class="lesson-active-header">
+                    <button class="btn btn-ghost" id="btn-weak-back">back</button>
+                    <div class="lesson-active-info">
+                        <div class="lesson-active-title">Weak Keys Practice</div>
+                        <div class="lesson-active-keys" id="weak-practice-keys"></div>
+                    </div>
+                </div>
+
+                <div class="typing-container" id="weak-typing-container">
+                    <div class="click-hint" id="weak-click-hint">click here or press any key to start</div>
+                    <div class="text-display-wrapper">
+                        <div class="text-display" id="weak-text-display"></div>
+                    </div>
+                    <input
+                        type="text"
+                        class="hidden-input"
+                        id="weak-hidden-input"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
+                </div>
+
+                <div class="timer-bar-container">
+                    <div class="timer-bar">
+                        <div class="timer-bar-fill" id="weak-timer-bar-fill"></div>
+                    </div>
+                    <div class="timer-text" id="weak-timer-text">60</div>
+                </div>
+
+                <div class="live-stats" style="margin-top:16px">
+                    <div class="live-stat">
+                        <div class="live-stat-value wpm" id="weak-live-wpm">0</div>
+                        <div class="live-stat-label">wpm</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value accuracy" id="weak-live-accuracy">100</div>
+                        <div class="live-stat-label">accuracy %</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value errors" id="weak-live-errors">0</div>
+                        <div class="live-stat-label">errors</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value streak" id="weak-live-streak">0</div>
+                        <div class="live-stat-label">streak</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lesson Browser (shown when no lesson active) -->
+            <div id="lesson-browser">
+                <div class="learn-header">
+                    <h2>Lessons</h2>
+                    <div class="learn-progress-summary" id="learn-progress-summary"></div>
+                </div>
+                <div id="lesson-levels"></div>
+            </div>
+
+            <!-- Active Lesson (shown when a lesson is being typed) -->
+            <div id="lesson-active" style="display:none">
+                <div class="lesson-active-header">
+                    <button class="btn btn-ghost" id="btn-lesson-back">back</button>
+                    <div class="lesson-active-info">
+                        <div class="lesson-active-title" id="lesson-active-title"></div>
+                        <div class="lesson-active-keys" id="lesson-active-keys"></div>
+                    </div>
+                    <div class="lesson-active-target" id="lesson-active-target"></div>
+                </div>
+
+                <div class="typing-container" id="lesson-typing-container">
+                    <div class="click-hint" id="lesson-click-hint">click here or press any key to start</div>
+                    <div class="text-display-wrapper">
+                        <div class="text-display" id="lesson-text-display"></div>
+                    </div>
+                    <input
+                        type="text"
+                        class="hidden-input"
+                        id="lesson-hidden-input"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
+                </div>
+
+                <div class="live-stats" style="margin-top:16px">
+                    <div class="live-stat">
+                        <div class="live-stat-value wpm" id="lesson-live-wpm">0</div>
+                        <div class="live-stat-label">wpm</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value accuracy" id="lesson-live-accuracy">100</div>
+                        <div class="live-stat-label">accuracy %</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value errors" id="lesson-live-errors">0</div>
+                        <div class="live-stat-label">errors</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value streak" id="lesson-live-streak">0</div>
+                        <div class="live-stat-label">streak</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LESSON RESULTS OVERLAY -->
+    <div class="results-overlay" id="lesson-results-overlay">
+        <div class="results-card">
+            <div class="results-title" id="lesson-results-title">Lesson Complete</div>
+            <div class="lesson-pass-status" id="lesson-pass-status"></div>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value wpm" id="lesson-result-wpm">0</div>
+                    <div class="result-label">words per minute</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value accuracy" id="lesson-result-accuracy">0</div>
+                    <div class="result-label">accuracy %</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value errors" id="lesson-result-errors">0</div>
+                    <div class="result-label">errors</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value streak" id="lesson-result-streak">0</div>
+                    <div class="result-label">best streak</div>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="btn btn-primary" id="btn-lesson-retry">retry</button>
+                <button class="btn btn-primary" id="btn-lesson-next" style="display:none">next lesson</button>
+                <button class="btn btn-ghost" id="btn-lesson-browse">all lessons</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS OVERLAY -->
+    <div class="results-overlay" id="results-overlay">
+        <div class="results-card">
+            <div class="results-title">Test Results</div>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value wpm" id="result-wpm">0</div>
+                    <div class="result-label">words per minute</div>
+                    <div class="result-badge new-best" id="badge-wpm" style="display:none">new best!</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value accuracy" id="result-accuracy">0</div>
+                    <div class="result-label">accuracy %</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value errors" id="result-errors">0</div>
+                    <div class="result-label">errors</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value streak" id="result-streak">0</div>
+                    <div class="result-label">best streak</div>
+                    <div class="result-badge new-best" id="badge-streak" style="display:none">new best!</div>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="btn btn-primary" id="btn-retry">retry (Enter)</button>
+                <button class="btn btn-ghost" id="btn-close-results">close (Esc)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSAGE SELECT OVERLAY -->
+    <div class="passage-select-overlay" id="passage-select-overlay">
+        <div class="passage-select-card">
+            <h3>Select a Passage</h3>
+            <div id="passage-list"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/engine.js') }}"></script>
+</body>
+</html>
