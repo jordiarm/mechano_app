@@ -549,9 +549,12 @@
     }
 
     // --- Stats View ---
+    let statsDuration = 60;
+
     async function loadStats() {
         try {
-            const res = await fetch("/api/stats");
+            const durationParam = statsDuration ? `?duration=${statsDuration}` : "";
+            const res = await fetch(`/api/stats${durationParam}`);
             const data = await res.json();
 
             $("#stat-total-tests").textContent = data.total_tests;
@@ -566,7 +569,7 @@
             renderAccuracyChart(data.history);
 
             // History table
-            const res2 = await fetch("/api/results?limit=20");
+            const res2 = await fetch(`/api/results?limit=20${statsDuration ? `&duration=${statsDuration}` : ""}`);
             const data2 = await res2.json();
             renderHistory(data2.results);
         } catch (_) {}
@@ -1549,6 +1552,16 @@
         $("#btn-lesson-retry").addEventListener("click", retryLesson);
         $("#btn-lesson-next").addEventListener("click", nextLesson);
         $("#btn-lesson-browse").addEventListener("click", exitLesson);
+
+        // Stats duration filter
+        $$("[data-stats-duration]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-stats-duration]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                statsDuration = btn.dataset.statsDuration === "all" ? null : parseInt(btn.dataset.statsDuration);
+                loadStats();
+            });
+        });
 
         // Nav tabs
         $$(".nav-tab").forEach((tab) => {

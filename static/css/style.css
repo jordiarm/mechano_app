@@ -531,12 +531,21 @@ body.no-scanlines::after {
 
 /* ===== STATS VIEW ===== */
 .stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 24px;
 }
 
 .stats-header h2 {
     font-size: 1rem;
     color: var(--text-primary);
+}
+
+.stats-duration-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .stats-overview {
