@@ -10,6 +10,7 @@ app = Flask(__name__)
 DATABASE = Path(__file__).parent / "mechano.db"
 
 WORD_POOL = [
+    # Common English words
     "the", "be", "to", "of", "and", "a", "in", "that", "have", "I",
     "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
     "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
@@ -27,11 +28,91 @@ WORD_POOL = [
     "program", "point", "school", "number", "never", "begin", "state", "city",
     "under", "start", "might", "story", "every", "move", "always", "young",
     "close", "public", "keep", "follow", "change", "bring", "watch", "spell",
-    "animal", "house", "letter", "mother", "answer", "found", "study", "still",
-    "learn", "plant", "cover", "food", "earth", "eye", "light", "thought",
+    "animal", "letter", "mother", "answer", "found", "study",
+    "plant", "cover", "food", "earth", "eye", "light", "thought",
     "together", "group", "important", "children", "side", "feet", "car",
-    "mile", "night", "walk", "white", "sea", "hard", "open", "difficult",
+    "mile", "walk", "white", "sea", "hard", "open", "difficult",
     "left", "example", "paper", "music", "power", "computer", "development",
+    # More common English words
+    "again", "away", "before", "below", "between", "came", "does", "down",
+    "during", "end", "far", "find", "form", "help", "home", "kind",
+    "last", "line", "live", "many", "mean", "men", "much", "must",
+    "name", "next", "off", "old", "once", "order", "own", "part",
+    "play", "put", "read", "right", "run", "same", "set", "small",
+    "such", "sure", "tell", "three", "through", "turn", "very", "water",
+    "where", "word", "yet", "along", "already", "another", "around", "ask",
+    "away", "began", "best", "better", "big", "body", "book", "boy",
+    "brought", "call", "case", "certain", "clear", "dark", "deep", "done",
+    "door", "draw", "early", "enough", "ever", "face", "fact", "fall",
+    "family", "feel", "few", "field", "fire", "five", "four", "front",
+    "full", "game", "gave", "girl", "going", "gone", "got", "green",
+    "ground", "grow", "half", "happen", "heard", "heart", "horse", "hot",
+    "hundred", "idea", "inside", "iron", "island", "itself", "king", "knew",
+    "land", "later", "leave", "less", "letter", "list", "listen", "lost",
+    "low", "map", "mark", "matter", "mind", "miss", "money", "morning",
+    "near", "nothing", "notice", "often", "once", "pair", "paper", "pass",
+    "past", "pattern", "person", "picture", "piece", "plan", "product",
+    "problem", "quite", "rain", "reach", "ready", "rest", "river", "road",
+    "rock", "room", "round", "rule", "run", "second", "seen", "sentence",
+    "serve", "several", "short", "since", "sing", "sit", "six", "sleep",
+    "slowly", "snow", "sometimes", "song", "soon", "space", "stand", "step",
+    "stop", "strong", "sun", "table", "talk", "ten", "test", "today",
+    "top", "toward", "town", "travel", "true", "try", "upon", "voice",
+    "war", "warm", "watch", "whether", "wind", "winter", "wish", "woman",
+    "wonder", "wood", "wrote", "year", "young", "able", "above", "across",
+    "age", "almost", "alone", "among", "appear", "area", "became", "bed",
+    "behind", "believe", "beside", "black", "blue", "boat", "bottom",
+    "break", "bright", "bring", "busy", "build", "built", "care", "carry",
+    "center", "check", "child", "church", "circle", "cold", "common",
+    "complete", "contain", "control", "cool", "corner", "count", "country",
+    "course", "cross", "cry", "cup", "cut", "dance", "danger", "dead",
+    "decide", "describe", "design", "develop", "die", "direct", "dog",
+    "dress", "drink", "drive", "drop", "dry", "during", "east", "eat",
+    "edge", "effect", "eight", "else", "engine", "equal", "event",
+    "experience", "explain", "express", "fair", "famous", "fast", "father",
+    "favor", "fight", "figure", "fill", "final", "fine", "finish", "fish",
+    "flat", "floor", "flower", "fly", "force", "forest", "forget", "forward",
+    "fresh", "friend", "fruit", "garden", "gather", "general", "gentle",
+    "glad", "glass", "gold", "gray", "grew", "guess", "guide", "hair",
+    "happy", "hat", "heavy", "hill", "history", "hole", "hope", "huge",
+    "human", "hunt", "hurry", "ice", "imagine", "inch", "include",
+    "increase", "indicate", "industry", "interest", "join", "jump",
+    "kept", "kitchen", "lake", "language", "laugh", "law", "lay", "lead",
+    "leg", "length", "level", "lie", "lift", "likely", "line", "liquid",
+    "log", "lot", "loud", "love", "machine", "main", "major", "market",
+    "mass", "material", "measure", "meat", "meet", "member", "metal",
+    "middle", "milk", "million", "minute", "modern", "moment", "month",
+    "moon", "mountain", "mouth", "multiply", "nation", "natural", "necessary",
+    "neighbor", "noise", "north", "nose", "note", "noun", "observe", "occur",
+    "ocean", "office", "oil", "opposite", "original", "outside", "page",
+    "paint", "paragraph", "parent", "particular", "path", "pay", "perhaps",
+    "period", "phrase", "plain", "planet", "please", "plural", "poem",
+    "poor", "position", "possible", "post", "pound", "practice", "prepare",
+    "present", "press", "pretty", "print", "probable", "produce", "promise",
+    "proper", "protect", "prove", "provide", "pull", "push", "quarter",
+    "question", "quiet", "race", "raise", "range", "rapid", "rather",
+    "receive", "record", "red", "region", "remember", "repeat", "reply",
+    "report", "represent", "require", "result", "rich", "ride", "ring",
+    "rise", "roll", "rope", "row", "safe", "said", "salt", "sand",
+    "sat", "save", "scale", "science", "score", "season", "seat", "section",
+    "seed", "seem", "select", "sell", "send", "sense", "separate", "settle",
+    "seven", "shape", "share", "sharp", "ship", "shoe", "shop", "shoulder",
+    "sight", "sign", "silent", "silver", "similar", "simple", "single",
+    "sister", "size", "skill", "skin", "slip", "smell", "smile", "soft",
+    "soil", "soldier", "solution", "solve", "sort", "sound", "south",
+    "special", "speed", "spend", "spoke", "spot", "spread", "spring",
+    "square", "stage", "star", "station", "stay", "steam", "steel", "stick",
+    "stone", "stood", "store", "straight", "strange", "street", "stretch",
+    "student", "subject", "substance", "success", "sudden", "sugar", "suggest",
+    "summer", "supply", "support", "surprise", "sweet", "swim", "symbol",
+    "tail", "tall", "teach", "team", "teeth", "temperature", "thick", "thin",
+    "tiny", "tire", "together", "tone", "tool", "touch", "track", "trade",
+    "train", "triangle", "trip", "trouble", "truck", "trust", "tube", "type",
+    "unit", "until", "usual", "valley", "verb", "visit", "wait", "wall",
+    "wash", "wave", "wear", "weather", "week", "weight", "went", "west",
+    "wheel", "whose", "wide", "wife", "wild", "win", "window", "wing",
+    "wire", "women", "won", "written", "wrong", "yard", "yellow",
+    # Programming and tech terms
     "function", "variable", "method", "class", "object", "string", "array",
     "index", "value", "return", "import", "module", "package", "server",
     "client", "request", "response", "database", "query", "table", "column",
@@ -40,6 +121,63 @@ WORD_POOL = [
     "docker", "config", "route", "cache", "proxy", "token", "parse", "render",
     "async", "await", "yield", "lambda", "tuple", "schema", "pipeline",
     "batch", "stream", "buffer", "socket", "thread", "process", "kernel",
+    "binary", "boolean", "byte", "callback", "compile", "constant", "cursor",
+    "data", "decode", "encode", "encrypt", "endpoint", "enum", "exception",
+    "execute", "export", "factory", "filter", "flag", "float", "framework",
+    "gateway", "handler", "hash", "header", "heap", "hook", "instance",
+    "integer", "interface", "iterate", "json", "key", "library", "link",
+    "loader", "local", "loop", "macro", "manifest", "memory", "middleware",
+    "migrate", "mock", "mutex", "namespace", "network", "null", "offset",
+    "operator", "optimize", "output", "overflow", "parameter", "parser",
+    "patch", "payload", "permission", "pointer", "poll", "pool", "port",
+    "prefix", "private", "profile", "promise", "protocol", "public",
+    "publish", "record", "redirect", "refactor", "reference", "register",
+    "release", "remote", "replica", "resolve", "resource", "retry", "revert",
+    "runtime", "sandbox", "scope", "script", "serialize", "session", "setter",
+    "signal", "snapshot", "source", "spawn", "static", "status", "store",
+    "struct", "subscribe", "suffix", "syntax", "target", "template",
+    "terminal", "timeout", "timestamp", "trace", "trigger", "truncate",
+    "update", "upload", "upstream", "validate", "version", "virtual",
+    "volume", "webhook", "worker", "wrapper", "abort", "abstract", "access",
+    "adapter", "alias", "allocate", "annotation", "argument", "assert",
+    "assign", "attribute", "backend", "benchmark", "binding", "bitwise",
+    "block", "bootstrap", "breakpoint", "broadcast", "bucket", "bundle",
+    "cache", "channel", "checkpoint", "chunk", "cipher", "cluster",
+    "codec", "collection", "compiler", "component", "compose", "compress",
+    "concat", "concurrent", "condition", "configure", "connect", "console",
+    "consumer", "context", "contract", "convert", "coroutine", "counter",
+    "coverage", "credential", "daemon", "deadlock", "debugger", "declare",
+    "default", "delegate", "dependency", "deserialize", "destructor",
+    "dispatch", "domain", "driver", "duplex", "dynamic", "element",
+    "embed", "emit", "emulator", "environment", "evaluate", "event",
+    "extend", "extract", "failover", "fallback", "firmware", "fixture",
+    "format", "fragment", "function", "garbage", "generic", "global",
+    "gradient", "handle", "hardcode", "hostname", "hybrid", "hydrate",
+    "idempotent", "immutable", "implement", "increment", "index",
+    "inherit", "initialize", "inject", "inline", "input", "inspect",
+    "integrate", "intercept", "interpolate", "interrupt", "invoke",
+    "isolate", "iterator", "kernel", "keystore", "latency", "launch",
+    "layout", "lazy", "lifecycle", "literal", "localhost", "logging",
+    "lookup", "linter", "marshal", "method", "metric", "microservice",
+    "minify", "module", "monitor", "mount", "multicast", "mutable",
+    "native", "negotiate", "notify", "observable", "opaque", "orchestrate",
+    "override", "package", "parallel", "partition", "persist", "pixel",
+    "platform", "plugin", "polyfill", "populate", "pragma", "predicate",
+    "preload", "primitive", "priority", "procedure", "producer", "program",
+    "propagate", "property", "prototype", "provision", "proxy", "purge",
+    "query", "queue", "random", "reactive", "readonly", "rebase", "rebuild",
+    "recursion", "reduce", "regex", "relay", "render", "repository",
+    "request", "response", "restore", "rollback", "router", "runtime",
+    "scalar", "schedule", "segment", "semaphore", "sentinel", "sequence",
+    "shard", "shell", "shim", "singleton", "slice", "socket", "sort",
+    "splice", "stack", "staging", "state", "strategy", "stringify", "subnet",
+    "subscribe", "suspend", "swap", "switch", "symlink", "sync", "table",
+    "tenant", "test", "thread", "throttle", "token", "topology", "trait",
+    "transaction", "transform", "traverse", "type", "union", "unique",
+    "unlock", "unmount", "unpack", "upstream", "utility", "validate",
+    "variable", "vector", "vendor", "viewport", "virtual", "volume",
+    "watchdog", "websocket", "widget", "wildcard", "workflow", "workspace",
+    "yield", "zero", "zip",
 ]
 
 LESSONS = [
@@ -381,6 +519,78 @@ PASSAGES = [
     {
         "title": "Linux Terminal",
         "text": "The command line interface is a powerful tool for interacting with your computer. It allows you to navigate the file system, manipulate files, install software, and automate tasks. Learning terminal commands increases your productivity and gives you greater control over your development environment."
+    },
+    {
+        "title": "Open Source Software",
+        "text": "Open source software is software with source code that anyone can inspect, modify, and enhance. When a program is open source, its source code is freely available to users. This allows developers around the world to contribute to projects, fix bugs, and add features. The open source movement has fundamentally changed how software is built and distributed."
+    },
+    {
+        "title": "Machine Learning Basics",
+        "text": "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed. The process begins with observations or data, such as examples or direct experience, in order to look for patterns in data and make better decisions in the future. The primary aim is to allow computers to learn automatically."
+    },
+    {
+        "title": "Agile Development",
+        "text": "Agile software development is an approach to building software through incremental delivery, team collaboration, continual planning, and continual learning. It encourages rapid and flexible response to change. Rather than building everything at once, agile teams deliver work in small but consumable increments, gathering feedback from users along the way."
+    },
+    {
+        "title": "Database Normalization",
+        "text": "Database normalization is the process of structuring a relational database to reduce data redundancy and improve data integrity. It involves dividing large tables into smaller ones and defining relationships between them. The normal forms provide guidelines to ensure that each table has a single purpose and that every piece of data is stored exactly once."
+    },
+    {
+        "title": "REST Architecture",
+        "text": "Representational State Transfer is an architectural style for designing networked applications. It relies on a stateless, client-server communication protocol, almost always HTTP. REST provides a set of constraints that, when applied as a whole, emphasizes scalability of component interactions, generality of interfaces, and independent deployment of components."
+    },
+    {
+        "title": "Cybersecurity Fundamentals",
+        "text": "Cybersecurity is the practice of protecting systems, networks, and programs from digital attacks. These attacks are usually aimed at accessing, changing, or destroying sensitive information, extorting money from users, or interrupting normal business processes. Implementing effective cybersecurity measures is particularly challenging today because there are more devices than people."
+    },
+    {
+        "title": "Version Control",
+        "text": "Version control is a system that records changes to a file or set of files over time so that you can recall specific versions later. It allows you to revert selected files back to a previous state, compare changes over time, see who last modified something, and more. Using a version control system generally means that if you mess things up, you can easily recover."
+    },
+    {
+        "title": "Networking Protocols",
+        "text": "The internet is built on layers of protocols that handle different aspects of communication. TCP ensures reliable data delivery by breaking messages into packets and reassembling them at the destination. HTTP sits on top of TCP and defines how web browsers and servers exchange information. DNS translates human readable domain names into IP addresses that computers use to identify each other."
+    },
+    {
+        "title": "Functional Programming",
+        "text": "Functional programming is a paradigm that treats computation as the evaluation of mathematical functions and avoids changing state and mutable data. Functions are first class citizens, meaning they can be passed as arguments, returned from other functions, and assigned to variables. Pure functions always produce the same output for the same input and have no side effects."
+    },
+    {
+        "title": "Testing Strategies",
+        "text": "Software testing is the process of evaluating and verifying that a product or application does what it is supposed to do. Good testing practices prevent bugs, reduce development costs, and improve performance. Unit tests verify individual components in isolation. Integration tests check that different parts of the system work together. End to end tests validate the entire application flow."
+    },
+    {
+        "title": "Microservices Architecture",
+        "text": "Microservices are an architectural approach where an application is structured as a collection of small, independent services. Each service runs in its own process and communicates through lightweight mechanisms, often HTTP APIs. Services are built around business capabilities and independently deployable. This architecture enables organizations to scale specific parts of their system without scaling everything."
+    },
+    {
+        "title": "Data Structures",
+        "text": "Data structures are specialized formats for organizing, processing, retrieving, and storing data. They provide a means to manage large amounts of data efficiently for uses such as large databases and internet indexing services. Common data structures include arrays, linked lists, stacks, queues, hash tables, trees, and graphs. Choosing the right data structure is crucial for writing efficient algorithms."
+    },
+    {
+        "title": "DevOps Culture",
+        "text": "DevOps is a set of practices that combines software development and IT operations. It aims to shorten the systems development lifecycle and provide continuous delivery with high software quality. DevOps is complementary to agile software development because several DevOps aspects came from the agile methodology. Automation, monitoring, and collaboration are key principles of the DevOps approach."
+    },
+    {
+        "title": "Kubernetes Overview",
+        "text": "Kubernetes is an open source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It groups containers into logical units for easy management and discovery. Kubernetes builds upon fifteen years of experience running production workloads at Google, combined with best of breed ideas and practices from the community."
+    },
+    {
+        "title": "The Art of Debugging",
+        "text": "Debugging is the process of finding and resolving bugs or defects in software. The most effective debugging strategy is to reproduce the problem consistently. Once reproducible, you can use tools like debuggers, log statements, and stack traces to narrow down the root cause. The best programmers are not those who write bug free code, but those who can find and fix bugs quickly."
+    },
+    {
+        "title": "Code Reviews",
+        "text": "Code review is a software quality assurance activity in which one or more people check a program by viewing and reading parts of its source code. The primary purpose is to find mistakes overlooked during initial development. Code reviews also promote knowledge sharing, maintain coding standards, and improve overall code quality. A good review catches logic errors, edge cases, and potential security issues."
+    },
+    {
+        "title": "Technical Debt",
+        "text": "Technical debt is a concept in software development that reflects the implied cost of additional rework caused by choosing an easy or limited solution now instead of a better approach that would take longer. Like monetary debt, technical debt is not necessarily a bad thing, and sometimes it is required to move projects forward. The key is to manage it deliberately and pay it down over time."
+    },
+    {
+        "title": "Observability",
+        "text": "Observability is the ability to measure the internal states of a system by examining its outputs. In software, this means understanding what is happening inside your applications through three pillars: logs, metrics, and traces. Logs record discrete events. Metrics track numeric measurements over time. Traces follow a request as it flows through distributed services. Together they provide a complete picture of system health."
     },
 ]
 
