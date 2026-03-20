@@ -18,7 +18,7 @@ templates/index.html          # Single-page app (test, learn, stats views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (30 tests)
+tests/test_api.py             # API route tests (38 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -54,7 +54,7 @@ pytest -v             # Run tests
 - Weak keys practice generates words weighted toward the user's most-missed characters
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
-- Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s); `/api/stats` and `/api/results` accept an optional `?duration=` query param
+- Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
 - `WORD_POOL` is deduplicated; lesson lookups use pre-built dicts (`_LESSON_BY_ID`, `_ALL_LESSON_IDS`) for O(1) access
 - `char_errors` bulk insert uses `executemany`; `get_results`/`get_stats` use parameterized WHERE clauses instead of duplicated SQL branches
 - `engine.js` shares a `renderTextToDisplay()` helper across test/lesson/weak-keys modes, and a `renderLineChart()` helper for both WPM and accuracy charts

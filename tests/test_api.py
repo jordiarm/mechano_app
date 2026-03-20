@@ -101,6 +101,30 @@ class TestResults:
         data = resp.get_json()
         assert len(data["results"]) == 0
 
+    def test_get_results_filter_by_mode(self, client, seed_results):
+        resp = client.get("/api/results?mode=words")
+        data = resp.get_json()
+        assert len(data["results"]) == 1
+        assert data["results"][0]["mode"] == "words"
+
+    def test_get_results_filter_by_mode_passage(self, client, seed_results):
+        resp = client.get("/api/results?mode=passage")
+        data = resp.get_json()
+        assert len(data["results"]) == 1
+        assert data["results"][0]["mode"] == "passage"
+
+    def test_get_results_filter_by_mode_no_match(self, client, seed_results):
+        resp = client.get("/api/results?mode=nonexistent")
+        data = resp.get_json()
+        assert len(data["results"]) == 0
+
+    def test_get_results_filter_by_mode_and_duration(self, client, seed_results):
+        resp = client.get("/api/results?mode=words&duration=60")
+        data = resp.get_json()
+        assert len(data["results"]) == 1
+        assert data["results"][0]["mode"] == "words"
+        assert data["results"][0]["duration"] == 60
+
 
 class TestStats:
     def test_stats_empty(self, client):
@@ -128,6 +152,31 @@ class TestStats:
         assert data["avg_wpm"] == 0
         assert data["best_wpm"] == 0
         assert data["history"] == []
+
+    def test_stats_filtered_by_mode_words(self, client, seed_results):
+        resp = client.get("/api/stats?mode=words")
+        data = resp.get_json()
+        assert data["total_tests"] == 1
+        assert data["best_wpm"] == 60.0
+
+    def test_stats_filtered_by_mode_passage(self, client, seed_results):
+        resp = client.get("/api/stats?mode=passage")
+        data = resp.get_json()
+        assert data["total_tests"] == 1
+        assert data["best_wpm"] == 75.0
+
+    def test_stats_filtered_by_mode_no_match(self, client, seed_results):
+        resp = client.get("/api/stats?mode=nonexistent")
+        data = resp.get_json()
+        assert data["total_tests"] == 0
+        assert data["best_wpm"] == 0
+        assert data["history"] == []
+
+    def test_stats_filtered_by_mode_and_duration(self, client, seed_results):
+        resp = client.get("/api/stats?mode=words&duration=60")
+        data = resp.get_json()
+        assert data["total_tests"] == 1
+        assert data["best_wpm"] == 60.0
 
 
 class TestLessons:
