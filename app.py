@@ -14,6 +14,7 @@ def get_db():
     if "db" not in g:
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA journal_mode=WAL")
     return g.db
 
 
@@ -67,6 +68,12 @@ def init_db():
     columns = [row[1] for row in db.execute("PRAGMA table_info(char_errors)").fetchall()]
     if "result_id" not in columns:
         db.execute("ALTER TABLE char_errors ADD COLUMN result_id INTEGER REFERENCES results(id)")
+
+    # Indexes for common query patterns
+    db.execute("CREATE INDEX IF NOT EXISTS idx_results_created_at ON results (created_at DESC)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_results_duration_mode ON results (duration, mode)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_char_errors_result_id ON char_errors (result_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_passed ON lesson_progress (lesson_id, passed)")
     db.commit()
     db.close()
 
