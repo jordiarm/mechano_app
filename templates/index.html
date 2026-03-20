@@ -17,6 +17,7 @@
             <div class="logo">~/mechano_app<span class="cursor">_</span></div>
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-view="test">test</button>
+                <button class="nav-tab" data-view="games">games</button>
                 <button class="nav-tab" data-view="learn">learn</button>
                 <button class="nav-tab" data-view="stats">stats</button>
                 <button class="nav-tab" data-view="settings">settings</button>
@@ -33,9 +34,6 @@
                     <span class="config-label">mode</span>
                     <button class="config-btn active" data-mode="words">words</button>
                     <button class="config-btn" data-mode="passage">passage</button>
-                    <button class="config-btn" data-mode="code">code</button>
-                    <button class="config-btn" data-mode="sudden_death">sudden death</button>
-                    <button class="config-btn" data-mode="custom">custom</button>
                 </div>
                 <div class="config-separator"></div>
                 <div class="config-group">
@@ -95,6 +93,105 @@
                 <div class="live-stat">
                     <div class="live-stat-value streak" id="live-streak">0</div>
                     <div class="live-stat-label">streak</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GAMES VIEW -->
+    <section id="view-games" class="view">
+        <div class="container">
+            <!-- Game Browser -->
+            <div id="game-browser">
+                <div class="learn-header">
+                    <h2>Games</h2>
+                </div>
+                <div class="game-cards">
+                    <div class="game-card" data-game="sudden_death">
+                        <div class="game-card-icon">&#9760;</div>
+                        <div class="game-card-info">
+                            <div class="game-card-title">Sudden Death</div>
+                            <div class="game-card-desc">One mistake and it's game over. How long can you survive?</div>
+                        </div>
+                    </div>
+                    <div class="game-card" data-game="code">
+                        <div class="game-card-icon">&#60;/&#62;</div>
+                        <div class="game-card-info">
+                            <div class="game-card-title">Code</div>
+                            <div class="game-card-desc">Type real code snippets in Python, JS, SQL, Shell, and more.</div>
+                        </div>
+                    </div>
+                    <div class="game-card" data-game="custom">
+                        <div class="game-card-icon">&#9998;</div>
+                        <div class="game-card-info">
+                            <div class="game-card-title">Custom Text</div>
+                            <div class="game-card-desc">Paste your own text and practice typing it.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Game -->
+            <div id="game-active" style="display:none">
+                <div class="lesson-active-header">
+                    <button class="btn btn-ghost" id="btn-game-back">back</button>
+                    <div class="lesson-active-info">
+                        <div class="lesson-active-title" id="game-active-title"></div>
+                    </div>
+                </div>
+
+                <!-- Game Time Config (shown for sudden death) -->
+                <div class="config-bar game-time-bar" id="game-time-bar" style="display:none">
+                    <div class="config-group">
+                        <span class="config-label">time</span>
+                        <button class="config-btn" data-game-time="15">15s</button>
+                        <button class="config-btn" data-game-time="30">30s</button>
+                        <button class="config-btn active" data-game-time="60">60s</button>
+                        <button class="config-btn" data-game-time="120">2m</button>
+                    </div>
+                </div>
+
+                <div class="click-hint" id="game-click-hint">press any key to start</div>
+
+                <div class="typing-container" id="game-typing-container">
+                    <div class="text-display-wrapper">
+                        <div class="text-display" id="game-text-display"></div>
+                    </div>
+                    <input
+                        type="text"
+                        class="hidden-input"
+                        id="game-hidden-input"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
+                </div>
+
+                <div class="timer-bar-container">
+                    <div class="timer-bar">
+                        <div class="timer-bar-fill" id="game-timer-bar-fill"></div>
+                    </div>
+                    <div class="timer-text" id="game-timer-text">60</div>
+                </div>
+
+                <div class="live-stats" style="margin-top:16px">
+                    <div class="live-stat">
+                        <div class="live-stat-value wpm" id="game-live-wpm">0</div>
+                        <div class="live-stat-label">wpm</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value accuracy" id="game-live-accuracy">100</div>
+                        <div class="live-stat-label">accuracy %</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value errors" id="game-live-errors">0</div>
+                        <div class="live-stat-label">errors</div>
+                    </div>
+                    <div class="live-stat">
+                        <div class="live-stat-value streak" id="game-live-streak">0</div>
+                        <div class="live-stat-label">streak</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -343,6 +440,35 @@
                 <button class="btn btn-primary" id="btn-lesson-retry">retry</button>
                 <button class="btn btn-primary" id="btn-lesson-next" style="display:none">next lesson</button>
                 <button class="btn btn-ghost" id="btn-lesson-browse">all lessons</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME RESULTS OVERLAY -->
+    <div class="results-overlay" id="game-results-overlay">
+        <div class="results-card">
+            <div class="results-title" id="game-results-title">Game Over</div>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value wpm" id="game-result-wpm">0</div>
+                    <div class="result-label">words per minute</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value accuracy" id="game-result-accuracy">0</div>
+                    <div class="result-label">accuracy %</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value errors" id="game-result-errors">0</div>
+                    <div class="result-label">errors</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value streak" id="game-result-streak">0</div>
+                    <div class="result-label">best streak</div>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="btn btn-primary" id="btn-game-retry">retry (Enter)</button>
+                <button class="btn btn-ghost" id="btn-game-browse">all games (Esc)</button>
             </div>
         </div>
     </div>
