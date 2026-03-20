@@ -3,6 +3,81 @@
 (function () {
     "use strict";
 
+    // --- Settings (persisted to localStorage) ---
+    const defaultSettings = {
+        theme: "dark",
+        scanlines: true,
+        keySound: true,
+        errorSound: true,
+        comboSound: true,
+        particles: true,
+        screenShake: true,
+    };
+
+    let settings = { ...defaultSettings };
+
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem("mechano_settings");
+            if (saved) settings = { ...defaultSettings, ...JSON.parse(saved) };
+        } catch (_) {}
+        applySettings();
+    }
+
+    function saveSettings() {
+        localStorage.setItem("mechano_settings", JSON.stringify(settings));
+    }
+
+    function applySettings() {
+        // Theme
+        document.documentElement.setAttribute("data-theme", settings.theme);
+
+        // Scanlines
+        document.body.classList.toggle("no-scanlines", !settings.scanlines);
+
+        // Sync UI controls
+        $$(".theme-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.theme === settings.theme);
+        });
+        const setCheckbox = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.checked = val;
+        };
+        setCheckbox("setting-scanlines", settings.scanlines);
+        setCheckbox("setting-key-sound", settings.keySound);
+        setCheckbox("setting-error-sound", settings.errorSound);
+        setCheckbox("setting-combo-sound", settings.comboSound);
+        setCheckbox("setting-particles", settings.particles);
+        setCheckbox("setting-screen-shake", settings.screenShake);
+    }
+
+    function bindSettings() {
+        // Theme buttons
+        $$(".theme-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                settings.theme = btn.dataset.theme;
+                saveSettings();
+                applySettings();
+            });
+        });
+
+        // Toggle checkboxes
+        const bindToggle = (id, key) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener("change", () => {
+                settings[key] = el.checked;
+                saveSettings();
+                applySettings();
+            });
+        };
+        bindToggle("setting-scanlines", "scanlines");
+        bindToggle("setting-key-sound", "keySound");
+        bindToggle("setting-error-sound", "errorSound");
+        bindToggle("setting-combo-sound", "comboSound");
+        bindToggle("setting-particles", "particles");
+        bindToggle("setting-screen-shake", "screenShake");
+    }
+
     // --- Audio Context for sound effects ---
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
@@ -13,6 +88,7 @@
     }
 
     function playKeySound() {
+        if (!settings.keySound) return;
         try {
             const ctx = getAudioCtx();
             const osc = ctx.createOscillator();
@@ -29,6 +105,7 @@
     }
 
     function playErrorSound() {
+        if (!settings.errorSound) return;
         try {
             const ctx = getAudioCtx();
             const osc = ctx.createOscillator();
@@ -45,6 +122,7 @@
     }
 
     function playComboSound() {
+        if (!settings.comboSound) return;
         try {
             const ctx = getAudioCtx();
             const osc = ctx.createOscillator();
@@ -81,6 +159,7 @@
 
     // --- Visual effects ---
     function spawnParticle(char, x, y, isCorrect) {
+        if (!settings.particles) return;
         const el = document.createElement("div");
         el.className = "keystroke-particle";
         el.textContent = char;
@@ -177,9 +256,11 @@
 
     // --- Init ---
     async function init() {
+        loadSettings();
         await loadPreviousBests();
         await loadText();
         bindEvents();
+        bindSettings();
         updateTimerDisplay();
     }
 
@@ -326,7 +407,8 @@
 
             playErrorSound();
             if (rect) spawnParticle(typedChar, rect.left + rect.width / 2, rect.top, false);
-            typingContainer.classList.add("error-flash", "screen-shake");
+            typingContainer.classList.add("error-flash");
+            if (settings.screenShake) typingContainer.classList.add("screen-shake");
             setTimeout(() => typingContainer.classList.remove("error-flash", "screen-shake"), 150);
         }
 
@@ -844,7 +926,8 @@
 
             playErrorSound();
             if (rect) spawnParticle(typedChar, rect.left + rect.width / 2, rect.top, false);
-            lessonTypingContainer.classList.add("error-flash", "screen-shake");
+            lessonTypingContainer.classList.add("error-flash");
+            if (settings.screenShake) lessonTypingContainer.classList.add("screen-shake");
             setTimeout(() => lessonTypingContainer.classList.remove("error-flash", "screen-shake"), 150);
         }
 
@@ -1125,7 +1208,8 @@
 
             playErrorSound();
             if (rect) spawnParticle(typedChar, rect.left + rect.width / 2, rect.top, false);
-            weakTypingContainer.classList.add("error-flash", "screen-shake");
+            weakTypingContainer.classList.add("error-flash");
+            if (settings.screenShake) weakTypingContainer.classList.add("screen-shake");
             setTimeout(() => weakTypingContainer.classList.remove("error-flash", "screen-shake"), 150);
         }
 

@@ -19,6 +19,7 @@
                 <button class="nav-tab active" data-view="test">test</button>
                 <button class="nav-tab" data-view="learn">learn</button>
                 <button class="nav-tab" data-view="stats">stats</button>
+                <button class="nav-tab" data-view="settings">settings</button>
             </nav>
         </div>
     </header>
@@ -342,6 +343,97 @@
             </div>
         </div>
     </div>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+        <div class="container">
+            <div class="settings-header">
+                <h2>Settings</h2>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Appearance</div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Theme</div>
+                        <div class="settings-item-desc">Switch between dark and light mode</div>
+                    </div>
+                    <div class="theme-selector">
+                        <button class="theme-btn active" data-theme="dark">dark</button>
+                        <button class="theme-btn" data-theme="light">light</button>
+                    </div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Scanlines</div>
+                        <div class="settings-item-desc">CRT-style scanline overlay effect</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-scanlines" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Sound</div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Keystroke sounds</div>
+                        <div class="settings-item-desc">Play a sound on each keypress</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-key-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Error sounds</div>
+                        <div class="settings-item-desc">Play a sound on typing mistakes</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-error-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Combo sounds</div>
+                        <div class="settings-item-desc">Play a sound on streak milestones</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-combo-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Effects</div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Keystroke particles</div>
+                        <div class="settings-item-desc">Floating character particles on keypress</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-particles" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-label">Screen shake</div>
+                        <div class="settings-item-desc">Shake the screen on errors</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-screen-shake" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- PASSAGE SELECT OVERLAY -->
     <div class="passage-select-overlay" id="passage-select-overlay">
