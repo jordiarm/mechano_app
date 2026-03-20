@@ -360,6 +360,11 @@
         customOverlay.classList.remove("active");
     }
 
+    // Cached char span arrays per display element, keyed by element id
+    const _charSpanCache = {};
+    // Cached lineHeight per display element
+    const _lineHeightCache = {};
+
     function renderTextToDisplay(text, displayEl, inputEl, hintEl) {
         const words = text.split(" ");
         let html = "";
@@ -384,6 +389,24 @@
         displayEl.style.transform = "translateY(0)";
         hintEl.style.display = "";
         hintEl.style.opacity = "1";
+
+        // Cache all char spans for O(1) access during typing
+        const id = displayEl.id;
+        _charSpanCache[id] = displayEl.querySelectorAll(".char");
+        _lineHeightCache[id] = null; // reset; lazily computed on first scroll
+    }
+
+    function getCharSpan(displayEl, index) {
+        const cached = _charSpanCache[displayEl.id];
+        return cached ? cached[index] || null : null;
+    }
+
+    function getLineHeight(displayEl) {
+        const id = displayEl.id;
+        if (_lineHeightCache[id] == null) {
+            _lineHeightCache[id] = parseFloat(getComputedStyle(displayEl).lineHeight);
+        }
+        return _lineHeightCache[id];
     }
 
     function renderText() {
@@ -408,9 +431,9 @@
         timerText.className = "timer-text";
     }
 
+    const _escapeMap = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
     function escapeHtml(str) {
-        const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
-        return str.replace(/[&<>"']/g, (m) => map[m]);
+        return str.replace(/[&<>"']/g, (m) => _escapeMap[m]);
     }
 
     // --- Typing logic ---
@@ -432,7 +455,7 @@
         }
 
         const expected = state.chars[state.currentIndex];
-        const charSpan = textDisplay.querySelector(`[data-index="${state.currentIndex}"]`);
+        const charSpan = getCharSpan(textDisplay, state.currentIndex);
         const rect = charSpan ? charSpan.getBoundingClientRect() : null;
 
         state.totalTyped++;
@@ -470,19 +493,16 @@
 
         // Mark next char as current
         if (state.currentIndex < state.chars.length) {
-            const next = textDisplay.querySelector(`[data-index="${state.currentIndex}"]`);
+            const next = getCharSpan(textDisplay, state.currentIndex);
             if (next) {
                 next.classList.remove("upcoming");
                 next.classList.add("current");
-            }
 
-            // Auto-scroll: shift text up so current line stays visible
-            if (next) {
-                const lineHeight = parseFloat(getComputedStyle(textDisplay).lineHeight);
-                const firstCharTop = textDisplay.querySelector('[data-index="0"]')?.offsetTop || 0;
+                // Auto-scroll: shift text up so current line stays visible
+                const lineHeight = getLineHeight(textDisplay);
+                const firstCharTop = getCharSpan(textDisplay, 0)?.offsetTop || 0;
                 const currentTop = next.offsetTop;
                 const linesScrolled = Math.floor((currentTop - firstCharTop) / lineHeight);
-                // Start shifting after the first line
                 if (linesScrolled > 0) {
                     textDisplay.style.transform = `translateY(-${linesScrolled * lineHeight}px)`;
                 }
@@ -521,6 +541,27 @@
         timerText.textContent = state.timeLeft;
     }
 
+    // --- Cached live stat DOM refs (queried once, not on every keystroke) ---
+    const liveWpmEl = $("#live-wpm");
+    const liveAccuracyEl = $("#live-accuracy");
+    const liveErrorsEl = $("#live-errors");
+    const liveStreakEl = $("#live-streak");
+
+    const lessonLiveWpmEl = $("#lesson-live-wpm");
+    const lessonLiveAccuracyEl = $("#lesson-live-accuracy");
+    const lessonLiveErrorsEl = $("#lesson-live-errors");
+    const lessonLiveStreakEl = $("#lesson-live-streak");
+
+    const weakLiveWpmEl = $("#weak-live-wpm");
+    const weakLiveAccuracyEl = $("#weak-live-accuracy");
+    const weakLiveErrorsEl = $("#weak-live-errors");
+    const weakLiveStreakEl = $("#weak-live-streak");
+
+    const gameLiveWpmEl = $("#game-live-wpm");
+    const gameLiveAccuracyEl = $("#game-live-accuracy");
+    const gameLiveErrorsEl = $("#game-live-errors");
+    const gameLiveStreakEl = $("#game-live-streak");
+
     // --- Stats ---
     function calcWpm() {
         if (!state.startTime) return 0;
@@ -535,10 +576,10 @@
     }
 
     function updateLiveStats() {
-        $("#live-wpm").textContent = calcWpm();
-        $("#live-accuracy").textContent = calcAccuracy();
-        $("#live-errors").textContent = state.errors;
-        $("#live-streak").textContent = state.streak;
+        liveWpmEl.textContent = calcWpm();
+        liveAccuracyEl.textContent = calcAccuracy();
+        liveErrorsEl.textContent = state.errors;
+        liveStreakEl.textContent = state.streak;
     }
 
     // --- Finish ---
@@ -974,7 +1015,7 @@
         }
 
         const expected = lesson.chars[lesson.currentIndex];
-        const charSpan = lessonTextDisplay.querySelector(`[data-index="${lesson.currentIndex}"]`);
+        const charSpan = getCharSpan(lessonTextDisplay, lesson.currentIndex);
         const rect = charSpan ? charSpan.getBoundingClientRect() : null;
 
         lesson.totalTyped++;
@@ -1010,12 +1051,12 @@
         lesson.currentIndex++;
 
         if (lesson.currentIndex < lesson.chars.length) {
-            const next = lessonTextDisplay.querySelector(`[data-index="${lesson.currentIndex}"]`);
+            const next = getCharSpan(lessonTextDisplay, lesson.currentIndex);
             if (next) {
                 next.classList.remove("upcoming");
                 next.classList.add("current");
-                const lineHeight = parseFloat(getComputedStyle(lessonTextDisplay).lineHeight);
-                const firstCharTop = lessonTextDisplay.querySelector('[data-index="0"]')?.offsetTop || 0;
+                const lineHeight = getLineHeight(lessonTextDisplay);
+                const firstCharTop = getCharSpan(lessonTextDisplay, 0)?.offsetTop || 0;
                 const currentTop = next.offsetTop;
                 const linesScrolled = Math.floor((currentTop - firstCharTop) / lineHeight);
                 if (linesScrolled > 0) {
@@ -1042,10 +1083,10 @@
     }
 
     function updateLessonLiveStats() {
-        $("#lesson-live-wpm").textContent = calcLessonWpm();
-        $("#lesson-live-accuracy").textContent = calcLessonAccuracy();
-        $("#lesson-live-errors").textContent = lesson.errors;
-        $("#lesson-live-streak").textContent = lesson.streak;
+        lessonLiveWpmEl.textContent = calcLessonWpm();
+        lessonLiveAccuracyEl.textContent = calcLessonAccuracy();
+        lessonLiveErrorsEl.textContent = lesson.errors;
+        lessonLiveStreakEl.textContent = lesson.streak;
     }
 
     async function finishLesson() {
@@ -1234,7 +1275,7 @@
         }
 
         const expected = weak.chars[weak.currentIndex];
-        const charSpan = weakTextDisplay.querySelector(`[data-index="${weak.currentIndex}"]`);
+        const charSpan = getCharSpan(weakTextDisplay, weak.currentIndex);
         const rect = charSpan ? charSpan.getBoundingClientRect() : null;
 
         weak.totalTyped++;
@@ -1270,12 +1311,12 @@
         weak.currentIndex++;
 
         if (weak.currentIndex < weak.chars.length) {
-            const next = weakTextDisplay.querySelector(`[data-index="${weak.currentIndex}"]`);
+            const next = getCharSpan(weakTextDisplay, weak.currentIndex);
             if (next) {
                 next.classList.remove("upcoming");
                 next.classList.add("current");
-                const lineHeight = parseFloat(getComputedStyle(weakTextDisplay).lineHeight);
-                const firstCharTop = weakTextDisplay.querySelector('[data-index="0"]')?.offsetTop || 0;
+                const lineHeight = getLineHeight(weakTextDisplay);
+                const firstCharTop = getCharSpan(weakTextDisplay, 0)?.offsetTop || 0;
                 const currentTop = next.offsetTop;
                 const linesScrolled = Math.floor((currentTop - firstCharTop) / lineHeight);
                 if (linesScrolled > 0) {
@@ -1322,10 +1363,10 @@
     }
 
     function updateWeakLiveStats() {
-        $("#weak-live-wpm").textContent = calcWeakWpm();
-        $("#weak-live-accuracy").textContent = calcWeakAccuracy();
-        $("#weak-live-errors").textContent = weak.errors;
-        $("#weak-live-streak").textContent = weak.streak;
+        weakLiveWpmEl.textContent = calcWeakWpm();
+        weakLiveAccuracyEl.textContent = calcWeakAccuracy();
+        weakLiveErrorsEl.textContent = weak.errors;
+        weakLiveStreakEl.textContent = weak.streak;
     }
 
     async function finishWeakPractice() {
@@ -1441,7 +1482,7 @@
         }
 
         const expected = game.chars[game.currentIndex];
-        const charSpan = gameTextDisplay.querySelector(`[data-index="${game.currentIndex}"]`);
+        const charSpan = getCharSpan(gameTextDisplay, game.currentIndex);
         const rect = charSpan ? charSpan.getBoundingClientRect() : null;
 
         game.totalTyped++;
@@ -1485,12 +1526,12 @@
         game.currentIndex++;
 
         if (game.currentIndex < game.chars.length) {
-            const next = gameTextDisplay.querySelector(`[data-index="${game.currentIndex}"]`);
+            const next = getCharSpan(gameTextDisplay, game.currentIndex);
             if (next) {
                 next.classList.remove("upcoming");
                 next.classList.add("current");
-                const lineHeight = parseFloat(getComputedStyle(gameTextDisplay).lineHeight);
-                const firstCharTop = gameTextDisplay.querySelector('[data-index="0"]')?.offsetTop || 0;
+                const lineHeight = getLineHeight(gameTextDisplay);
+                const firstCharTop = getCharSpan(gameTextDisplay, 0)?.offsetTop || 0;
                 const currentTop = next.offsetTop;
                 const linesScrolled = Math.floor((currentTop - firstCharTop) / lineHeight);
                 if (linesScrolled > 0) {
@@ -1537,10 +1578,10 @@
     }
 
     function updateGameLiveStats() {
-        $("#game-live-wpm").textContent = calcGameWpm();
-        $("#game-live-accuracy").textContent = calcGameAccuracy();
-        $("#game-live-errors").textContent = game.errors;
-        $("#game-live-streak").textContent = game.streak;
+        gameLiveWpmEl.textContent = calcGameWpm();
+        gameLiveAccuracyEl.textContent = calcGameAccuracy();
+        gameLiveErrorsEl.textContent = game.errors;
+        gameLiveStreakEl.textContent = game.streak;
     }
 
     async function finishGame() {
