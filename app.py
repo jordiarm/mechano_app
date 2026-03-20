@@ -1620,6 +1620,10 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Migrate: add result_id to char_errors if missing
+    columns = [row[1] for row in db.execute("PRAGMA table_info(char_errors)").fetchall()]
+    if "result_id" not in columns:
+        db.execute("ALTER TABLE char_errors ADD COLUMN result_id INTEGER REFERENCES results(id)")
     db.commit()
     db.close()
 

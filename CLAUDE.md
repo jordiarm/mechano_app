@@ -80,3 +80,9 @@ pytest -v             # Run tests
 - **What:** `test_stats_filtered_by_duration_no_match` failed because it asserted `best_wpm == 75.0` and `avg_accuracy == 96.5` — values from the seed data — when filtering by duration=15 which has zero matching results.
 - **Why:** Copy-paste error from the positive test case. The "no match" test should assert all values are zero/empty since no results exist for that duration.
 - **Fix:** Replaced assertions with `best_wpm == 0` and `history == []`. Lesson: always review assertion values against the test scenario, especially for negative/empty cases.
+
+### 2026-03-20 — `CREATE TABLE IF NOT EXISTS` doesn't add new columns to existing tables
+
+- **What:** After adding `result_id` FK column to `char_errors`, the weak keys section silently disappeared. The `/api/weak-keys` query failed because the `result_id` column didn't exist in the running database, and the JS `try/catch` swallowed the error.
+- **Why:** `CREATE TABLE IF NOT EXISTS` skips entirely when the table already exists — it does not diff the schema or add missing columns. The existing `mechano.db` kept the old schema without `result_id`.
+- **Fix:** Added an auto-migration in `init_db()` that checks `PRAGMA table_info(char_errors)` for the `result_id` column and runs `ALTER TABLE` if missing. Lesson: whenever adding columns to existing tables, always add a migration step — `CREATE TABLE IF NOT EXISTS` is only for first-time creation.
