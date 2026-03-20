@@ -3,6 +3,16 @@
 (function () {
     "use strict";
 
+    // --- Auth-aware fetch wrapper ---
+    async function apiFetch(url, opts) {
+        const res = await fetch(url, opts);
+        if (res.status === 401) {
+            window.location.href = "/login";
+            throw new Error("unauthorized");
+        }
+        return res;
+    }
+
     // --- Animated counter for result values ---
     function animateCounter(el, target, duration = 600) {
         const start = performance.now();
@@ -236,7 +246,7 @@
         if (charErrorBuffer.length === 0) return;
         const errors = charErrorBuffer.splice(0);
         try {
-            await fetch("/api/char-errors", {
+            await apiFetch("/api/char-errors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ errors, result_id: resultId }),
@@ -297,7 +307,7 @@
 
     async function loadPreviousBests() {
         try {
-            const res = await fetch("/api/stats");
+            const res = await apiFetch("/api/stats");
             const data = await res.json();
             state.previousBestWpm = data.best_wpm || 0;
             state.previousBestStreak = data.best_streak || 0;
@@ -306,7 +316,7 @@
 
     async function loadText() {
         if (state.mode === "words") {
-            const res = await fetch("/api/words?count=250");
+            const res = await apiFetch("/api/words?count=250");
             const data = await res.json();
             state.text = data.words;
         }
@@ -314,7 +324,7 @@
     }
 
     async function loadPassage(index) {
-        const res = await fetch(`/api/passage?index=${index}`);
+        const res = await apiFetch(`/api/passage?index=${index}`);
         const data = await res.json();
         state.text = data.text;
         renderText();
@@ -322,7 +332,7 @@
     }
 
     async function showPassageSelector() {
-        const res = await fetch("/api/passages");
+        const res = await apiFetch("/api/passages");
         const data = await res.json();
         passageList.innerHTML = "";
         data.passages.forEach((p, i) => {
@@ -339,7 +349,7 @@
     }
 
     async function showCodeSelector() {
-        const res = await fetch("/api/code-snippets");
+        const res = await apiFetch("/api/code-snippets");
         const data = await res.json();
         codeSnippetList.innerHTML = "";
         data.snippets.forEach((s, i) => {
@@ -356,7 +366,7 @@
     }
 
     async function loadCodeSnippet(index) {
-        const res = await fetch(`/api/code-snippet?index=${index}`);
+        const res = await apiFetch(`/api/code-snippet?index=${index}`);
         const data = await res.json();
         startGameWithText("code", data.title, data.text);
         codeOverlay.classList.remove("active");
@@ -632,7 +642,7 @@
         // Save to backend
         let resultId = null;
         try {
-            const res = await fetch("/api/results", {
+            const res = await apiFetch("/api/results", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -675,7 +685,7 @@
     async function loadStats() {
         try {
             const query = buildStatsQuery();
-            const res = await fetch(`/api/stats${query}`);
+            const res = await apiFetch(`/api/stats${query}`);
             const data = await res.json();
 
             $("#stat-best-kps").textContent = data.best_kps.toFixed(1);
@@ -690,7 +700,7 @@
             renderAccuracyChart(data.history);
 
             // History table
-            const res2 = await fetch(`/api/results?limit=20${query ? "&" + query.slice(1) : ""}`);
+            const res2 = await apiFetch(`/api/results?limit=20${query ? "&" + query.slice(1) : ""}`);
             const data2 = await res2.json();
             renderHistory(data2.results);
         } catch (_) {}
@@ -876,7 +886,7 @@
 
     async function loadLessons() {
         try {
-            const res = await fetch("/api/lessons");
+            const res = await apiFetch("/api/lessons");
             const data = await res.json();
             lesson.levelsData = data.levels;
             renderLessonBrowser(data.levels);
@@ -964,7 +974,7 @@
 
     async function startLesson(lessonId) {
         try {
-            const res = await fetch(`/api/lesson/${lessonId}`);
+            const res = await apiFetch(`/api/lesson/${lessonId}`);
             const data = await res.json();
 
             lesson.active = true;
@@ -1142,7 +1152,7 @@
 
         // Save result
         try {
-            await fetch(`/api/lesson/${lesson.id}/result`, {
+            await apiFetch(`/api/lesson/${lesson.id}/result`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1212,7 +1222,7 @@
 
     async function loadWeakKeysPreview() {
         try {
-            const res = await fetch("/api/weak-keys");
+            const res = await apiFetch("/api/weak-keys");
             const data = await res.json();
             if (data.weak_keys.length === 0) {
                 weakSection.style.display = "none";
@@ -1230,7 +1240,7 @@
 
     async function startWeakPractice() {
         try {
-            const res = await fetch("/api/weak-keys/practice");
+            const res = await apiFetch("/api/weak-keys/practice");
             const data = await res.json();
             if (!data.has_data) return;
 
@@ -1466,7 +1476,7 @@
     }
 
     async function startSuddenDeath() {
-        const res = await fetch("/api/words?count=250");
+        const res = await apiFetch("/api/words?count=250");
         const data = await res.json();
         startGameWithText("sudden_death", "Sudden Death", data.words);
     }
@@ -1627,7 +1637,7 @@
         // Save to backend
         let resultId = null;
         try {
-            const res = await fetch("/api/results", {
+            const res = await apiFetch("/api/results", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

@@ -4,6 +4,7 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 
 ## Features
 
+- **User accounts** — register and log in; all progress is scoped per user
 - **Test** — measure your WPM and accuracy
   - **Words** — random common English and programming words
   - **Passage** — longer prose texts on tech topics
@@ -35,6 +36,9 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+# (Optional) Set a secret key for session security
+export SECRET_KEY="your-secret-key"
+
 # Run the app
 python app.py
 ```
@@ -44,7 +48,7 @@ Then open [http://localhost:5555](http://localhost:5555) in your browser.
 ## Project structure
 
 ```
-app.py                        # Flask app, API routes, SQLite setup, helpers
+app.py                        # Flask app, API routes, auth, SQLite setup, helpers
 data/                         # Static data constants
   __init__.py                 # Re-exports all data constants
   words.py                    # WORD_POOL — English + programming word list
@@ -53,6 +57,7 @@ data/                         # Static data constants
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
+templates/auth.html           # Login and registration page
 templates/index.html          # Single-page app (test, learn, stats views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects

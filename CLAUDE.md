@@ -16,7 +16,7 @@ Typing speed tracker and training app built with Flask.
 ## Project structure
 
 ```
-app.py                        # Flask app, API routes, SQLite setup, helpers
+app.py                        # Flask app, API routes, auth, SQLite setup, helpers
 data/                         # Static data constants (extracted from app.py)
   __init__.py                 # Re-exports all data constants
   words.py                    # WORD_POOL — English + programming word list
@@ -25,11 +25,12 @@ data/                         # Static data constants (extracted from app.py)
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
+templates/auth.html           # Login and registration page
 templates/index.html          # Single-page app (test, learn, stats views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (42 tests)
+tests/test_api.py             # API route tests (54 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -39,6 +40,7 @@ tests/test_api.py             # API route tests (42 tests)
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+export SECRET_KEY="your-secret-key"  # optional, defaults to dev key
 python app.py
 # Open http://localhost:5555
 ```
@@ -63,7 +65,8 @@ pytest -v             # Run tests
 - Static data (words, lessons, passages, code snippets) lives in `data/` module, keeping `app.py` focused on routes and logic
 - Test tab modes: words, passage. Games tab modes: sudden_death (one mistake = game over), code (real code snippets), custom (user-pasted text)
 - Games tab follows the learn tab pattern: browser view with cards → active game view with typing container → results overlay
-- All data (test results, lesson progress, character errors) is stored in SQLite locally — no auth, no remote backend
+- User authentication via Flask sessions and werkzeug password hashing; all data is scoped per user via `user_id` FK columns
+- All data (test results, lesson progress, character errors) is stored in SQLite locally — no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
 - Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`)
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
@@ -77,9 +80,10 @@ pytest -v             # Run tests
 
 ## Database tables
 
-- `results` — test results (WPM, accuracy, errors, streak, duration, mode)
-- `lesson_progress` — per-lesson attempts with pass/fail
-- `char_errors` — every individual character miss (result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 10 results
+- `users` — registered accounts (username, password_hash); all other tables reference `users(id)` via `user_id` FK
+- `results` — test results (user_id, WPM, accuracy, errors, streak, duration, mode)
+- `lesson_progress` — per-lesson attempts with pass/fail (user_id scoped)
+- `char_errors` — every individual character miss (user_id, result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 10 results
 
 ## Issue log
 
