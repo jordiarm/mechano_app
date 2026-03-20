@@ -419,10 +419,10 @@ body.no-scanlines::after {
     font-variant-numeric: tabular-nums;
 }
 
-.live-stat-value.wpm { color: var(--accent); }
-.live-stat-value.accuracy { color: var(--green); }
-.live-stat-value.errors { color: var(--red); }
-.live-stat-value.streak { color: var(--yellow); }
+.live-stat-value.wpm { color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0, 229, 255, 0.3); }
+.live-stat-value.accuracy { color: var(--neon-lime); text-shadow: 0 0 8px rgba(118, 255, 3, 0.3); }
+.live-stat-value.errors { color: var(--neon-pink); text-shadow: 0 0 8px rgba(255, 64, 129, 0.3); }
+.live-stat-value.streak { color: var(--neon-orange); text-shadow: 0 0 8px rgba(255, 145, 0, 0.3); }
 
 .live-stat-label {
     font-size: 0.65rem;
@@ -514,7 +514,7 @@ body.no-scanlines::after {
 
 /* Spotlight glow on WPM result */
 .result-item:first-child {
-    background: radial-gradient(ellipse at center, rgba(88, 166, 255, 0.08) 0%, var(--bg-tertiary) 70%);
+    background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.08) 0%, var(--bg-tertiary) 70%);
 }
 
 .result-value {
@@ -523,10 +523,10 @@ body.no-scanlines::after {
     font-variant-numeric: tabular-nums;
 }
 
-.result-value.wpm { color: var(--accent); }
-.result-value.accuracy { color: var(--green); }
-.result-value.errors { color: var(--red); }
-.result-value.streak { color: var(--yellow); }
+.result-value.wpm { color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0, 229, 255, 0.3); }
+.result-value.accuracy { color: var(--neon-lime); text-shadow: 0 0 8px rgba(118, 255, 3, 0.3); }
+.result-value.errors { color: var(--neon-pink); text-shadow: 0 0 8px rgba(255, 64, 129, 0.3); }
+.result-value.streak { color: var(--neon-orange); text-shadow: 0 0 8px rgba(255, 145, 0, 0.3); }
 
 .result-label {
     font-size: 0.7rem;
@@ -1168,7 +1168,7 @@ body.no-scanlines::after {
 .lesson-card-stats-wpm {
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--neon-cyan);
     font-variant-numeric: tabular-nums;
 }
 
