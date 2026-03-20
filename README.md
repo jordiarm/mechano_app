@@ -14,7 +14,7 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 - **Learn** — progressive lessons and targeted practice
   - **Lessons** — 8 levels (32 lessons) from home row to real-world code patterns, unlocked by meeting accuracy thresholds (85-90%)
   - **Weak keys** — generates words weighted toward your most-missed characters from the last 5 tests
-- **Stats** — WPM/accuracy charts, history table, filterable by mode and duration
+- **Stats** — best/avg WPM, keys/sec, accuracy, and streak cards; WPM and accuracy charts over last 60 tests; history table, filterable by mode and duration
 - **Settings** — dark/light theme, toggle scanlines, sounds, particles, and screen shake
 - **Effects** — keystroke particles, combo streaks, screen shake, sound effects (Web Audio API)
 

@@ -3,6 +3,21 @@
 (function () {
     "use strict";
 
+    // --- Animated counter for result values ---
+    function animateCounter(el, target, duration = 600) {
+        const start = performance.now();
+        const from = 0;
+        const isInt = Number.isInteger(target);
+        function tick(now) {
+            const t = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+            const val = from + (target - from) * eased;
+            el.textContent = isInt ? Math.round(val) : val.toFixed(1);
+            if (t < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
     // --- Settings (persisted to localStorage) ---
     const defaultSettings = {
         theme: "dark",
@@ -594,11 +609,11 @@
 
         playFinishSound();
 
-        // Show results
-        $("#result-wpm").textContent = wpm;
-        $("#result-accuracy").textContent = accuracy;
-        $("#result-errors").textContent = state.errors;
-        $("#result-streak").textContent = state.bestStreak;
+        // Show results (animated counters)
+        animateCounter($("#result-wpm"), wpm);
+        animateCounter($("#result-accuracy"), accuracy);
+        animateCounter($("#result-errors"), state.errors);
+        animateCounter($("#result-streak"), state.bestStreak);
 
         // New best badges
         if (wpm > state.previousBestWpm && state.previousBestWpm > 0) {
@@ -663,12 +678,12 @@
             const res = await fetch(`/api/stats${query}`);
             const data = await res.json();
 
-            $("#stat-total-tests").textContent = data.total_tests;
+            $("#stat-best-kps").textContent = data.best_kps.toFixed(1);
             $("#stat-avg-wpm").textContent = Math.round(data.avg_wpm);
             $("#stat-best-wpm").textContent = Math.round(data.best_wpm);
             $("#stat-avg-accuracy").textContent = Math.round(data.avg_accuracy);
+            $("#stat-avg-kps").textContent = data.avg_kps.toFixed(1);
             $("#stat-best-streak").textContent = data.best_streak;
-            $("#stat-total-chars").textContent = data.total_chars_typed.toLocaleString();
 
             // Charts
             renderChart(data.history);
@@ -1100,11 +1115,11 @@
 
         playFinishSound();
 
-        // Show results
-        $("#lesson-result-wpm").textContent = wpm;
-        $("#lesson-result-accuracy").textContent = accuracy;
-        $("#lesson-result-errors").textContent = lesson.errors;
-        $("#lesson-result-streak").textContent = lesson.bestStreak;
+        // Show results (animated counters)
+        animateCounter($("#lesson-result-wpm"), wpm);
+        animateCounter($("#lesson-result-accuracy"), accuracy);
+        animateCounter($("#lesson-result-errors"), lesson.errors);
+        animateCounter($("#lesson-result-streak"), lesson.bestStreak);
 
         const statusEl = $("#lesson-pass-status");
         if (passed) {
@@ -1378,13 +1393,13 @@
         playFinishSound();
         await flushCharErrors();
 
-        // Show results via the main results overlay
+        // Show results via the main results overlay (animated counters)
         const wpm = calcWeakWpm();
         const accuracy = calcWeakAccuracy();
-        $("#result-wpm").textContent = wpm;
-        $("#result-accuracy").textContent = accuracy;
-        $("#result-errors").textContent = weak.errors;
-        $("#result-streak").textContent = weak.bestStreak;
+        animateCounter($("#result-wpm"), wpm);
+        animateCounter($("#result-accuracy"), accuracy);
+        animateCounter($("#result-errors"), weak.errors);
+        animateCounter($("#result-streak"), weak.bestStreak);
         $("#badge-wpm").style.display = "none";
         $("#badge-streak").style.display = "none";
         resultsOverlay.classList.add("active");
@@ -1602,10 +1617,10 @@
         } else {
             titleEl.textContent = "Game Complete";
         }
-        $("#game-result-wpm").textContent = wpm;
-        $("#game-result-accuracy").textContent = accuracy;
-        $("#game-result-errors").textContent = game.errors;
-        $("#game-result-streak").textContent = game.bestStreak;
+        animateCounter($("#game-result-wpm"), wpm);
+        animateCounter($("#game-result-accuracy"), accuracy);
+        animateCounter($("#game-result-errors"), game.errors);
+        animateCounter($("#game-result-streak"), game.bestStreak);
 
         gameResultsOverlay.classList.add("active");
 

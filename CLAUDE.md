@@ -69,6 +69,8 @@ pytest -v             # Run tests
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
+- Stats overview cards and charts are scoped to the last 60 tests (not all-time); `/api/stats` aggregates via a subquery with `LIMIT 60`
+- Stats cards: avg WPM, best WPM, avg accuracy, avg keys/sec, best keys/sec, best streak; `avg_kps` and `best_kps` are computed as `total_chars / duration`
 - `WORD_POOL` is deduplicated; lesson lookups use pre-built dicts (`_LESSON_BY_ID`, `_ALL_LESSON_IDS`) for O(1) access
 - `char_errors` bulk insert uses `executemany`; `get_results`/`get_stats` use parameterized WHERE clauses instead of duplicated SQL branches
 - `engine.js` shares a `renderTextToDisplay()` helper across test/lesson/weak-keys modes, and a `renderLineChart()` helper for both WPM and accuracy charts

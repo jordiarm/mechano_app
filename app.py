@@ -202,6 +202,10 @@ def get_stats():
     db = get_db()
     where, params = _build_results_filter()
     params = tuple(params)
+    recent = db.execute(
+        f"SELECT wpm, accuracy, streak, total_chars, duration, created_at FROM results {where} ORDER BY created_at DESC LIMIT 60",
+        params,
+    ).fetchall()
     row = db.execute(
         f"""
         SELECT
@@ -210,15 +214,12 @@ def get_stats():
             COALESCE(MAX(wpm), 0) as best_wpm,
             COALESCE(AVG(accuracy), 0) as avg_accuracy,
             COALESCE(MAX(streak), 0) as best_streak,
-            COALESCE(SUM(total_chars), 0) as total_chars_typed
-        FROM results {where}
+            COALESCE(AVG(total_chars * 1.0 / duration), 0) as avg_kps,
+            COALESCE(MAX(total_chars * 1.0 / duration), 0) as best_kps
+        FROM (SELECT * FROM results {where} ORDER BY created_at DESC LIMIT 60)
     """,
         params,
     ).fetchone()
-    recent = db.execute(
-        f"SELECT wpm, accuracy, streak, created_at FROM results {where} ORDER BY created_at DESC LIMIT 20",
-        params,
-    ).fetchall()
     stats = dict(row)
     stats["history"] = [dict(r) for r in recent]
 
