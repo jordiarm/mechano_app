@@ -4,17 +4,19 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 
 ## Features
 
-- **Typing tests** — measure your WPM and accuracy across multiple modes
+- **Test** — measure your WPM and accuracy
   - **Words** — random common English and programming words
   - **Passage** — longer prose texts on tech topics
+- **Games** — challenge modes with unique twists
+  - **Sudden Death** — one mistake and the game is over
   - **Code** — real code snippets in Python, JS, SQL, Shell, TypeScript, Go, Rust, and more
-  - **Sudden Death** — one mistake and the test is over
   - **Custom** — paste your own text to practice with
-- **Progressive lessons** — 8 levels (32 lessons) from home row to real-world code patterns, unlocked by meeting accuracy thresholds (85-90%)
-- **Weak keys practice** — generates words weighted toward your most-missed characters from the last 5 tests
-- **Stats tracking** — WPM/accuracy charts, history table, filterable by mode and duration
-- **Effects** — keystroke particles, combo streaks, screen shake, sound effects (Web Audio API)
+- **Learn** — progressive lessons and targeted practice
+  - **Lessons** — 8 levels (32 lessons) from home row to real-world code patterns, unlocked by meeting accuracy thresholds (85-90%)
+  - **Weak keys** — generates words weighted toward your most-missed characters from the last 5 tests
+- **Stats** — WPM/accuracy charts, history table, filterable by mode and duration
 - **Settings** — dark/light theme, toggle scanlines, sounds, particles, and screen shake
+- **Effects** — keystroke particles, combo streaks, screen shake, sound effects (Web Audio API)
 
 ## Tech stack
 
@@ -67,3 +69,10 @@ ruff format --check . # Format check
 ruff format .         # Auto-format
 pytest -v             # Run tests (42 tests)
 ```
+
+## CI Pipeline
+
+GitHub Actions workflow runs on push/PR to `main`:
+
+- **lint** job: `ruff check .` and `ruff format --check .`
+- **test** job: `pytest -v`

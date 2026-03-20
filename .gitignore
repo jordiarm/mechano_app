@@ -3,9 +3,21 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.*
 
 # Database
 mechano.db
+
+# Testing / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
 
 # IDE
 .vscode/
@@ -13,6 +25,7 @@ mechano.db
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Claude
 .claude/
