@@ -1748,7 +1748,14 @@ def save_result():
 def get_results():
     db = get_db()
     limit = request.args.get("limit", 50, type=int)
-    rows = db.execute("SELECT * FROM results ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+    duration = request.args.get("duration", None, type=int)
+    if duration:
+        rows = db.execute(
+            "SELECT * FROM results WHERE duration = ? ORDER BY created_at DESC LIMIT ?",
+            (duration, limit),
+        ).fetchall()
+    else:
+        rows = db.execute("SELECT * FROM results ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
     results = [dict(row) for row in rows]
     return jsonify({"results": results})
 
@@ -1756,21 +1763,40 @@ def get_results():
 @app.route("/api/stats", methods=["GET"])
 def get_stats():
     db = get_db()
-    row = db.execute("""
-        SELECT
-            COUNT(*) as total_tests,
-            COALESCE(AVG(wpm), 0) as avg_wpm,
-            COALESCE(MAX(wpm), 0) as best_wpm,
-            COALESCE(AVG(accuracy), 0) as avg_accuracy,
-            COALESCE(MAX(streak), 0) as best_streak,
-            COALESCE(SUM(total_chars), 0) as total_chars_typed
-        FROM results
-    """).fetchone()
+    duration = request.args.get("duration", None, type=int)
+    if duration:
+        row = db.execute(
+            """
+            SELECT
+                COUNT(*) as total_tests,
+                COALESCE(AVG(wpm), 0) as avg_wpm,
+                COALESCE(MAX(wpm), 0) as best_wpm,
+                COALESCE(AVG(accuracy), 0) as avg_accuracy,
+                COALESCE(MAX(streak), 0) as best_streak,
+                COALESCE(SUM(total_chars), 0) as total_chars_typed
+            FROM results WHERE duration = ?
+        """,
+            (duration,),
+        ).fetchone()
+        recent = db.execute(
+            "SELECT wpm, accuracy, streak, created_at FROM results WHERE duration = ? ORDER BY created_at DESC LIMIT 30",
+            (duration,),
+        ).fetchall()
+    else:
+        row = db.execute("""
+            SELECT
+                COUNT(*) as total_tests,
+                COALESCE(AVG(wpm), 0) as avg_wpm,
+                COALESCE(MAX(wpm), 0) as best_wpm,
+                COALESCE(AVG(accuracy), 0) as avg_accuracy,
+                COALESCE(MAX(streak), 0) as best_streak,
+                COALESCE(SUM(total_chars), 0) as total_chars_typed
+            FROM results
+        """).fetchone()
+        recent = db.execute(
+            "SELECT wpm, accuracy, streak, created_at FROM results ORDER BY created_at DESC LIMIT 30"
+        ).fetchall()
     stats = dict(row)
-
-    recent = db.execute(
-        "SELECT wpm, accuracy, streak, created_at FROM results ORDER BY created_at DESC LIMIT 30"
-    ).fetchall()
     stats["history"] = [dict(r) for r in recent]
 
     return jsonify(stats)

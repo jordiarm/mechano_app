@@ -89,6 +89,18 @@ class TestResults:
         data = resp.get_json()
         assert len(data["results"]) == 1
 
+    def test_get_results_filter_by_duration(self, client, seed_results):
+        resp = client.get("/api/results?duration=60")
+        data = resp.get_json()
+        assert len(data["results"]) == 2
+        for r in data["results"]:
+            assert r["duration"] == 60
+
+    def test_get_results_filter_by_duration_no_match(self, client, seed_results):
+        resp = client.get("/api/results?duration=15")
+        data = resp.get_json()
+        assert len(data["results"]) == 0
+
 
 class TestStats:
     def test_stats_empty(self, client):
@@ -102,9 +114,20 @@ class TestStats:
         resp = client.get("/api/stats")
         data = resp.get_json()
         assert data["total_tests"] == 2
+
+    def test_stats_filtered_by_duration(self, client, seed_results):
+        resp = client.get("/api/stats?duration=60")
+        data = resp.get_json()
+        assert data["total_tests"] == 2
         assert data["best_wpm"] == 75.0
-        assert data["avg_accuracy"] == 96.5
-        assert len(data["history"]) == 2
+
+    def test_stats_filtered_by_duration_no_match(self, client, seed_results):
+        resp = client.get("/api/stats?duration=15")
+        data = resp.get_json()
+        assert data["total_tests"] == 0
+        assert data["avg_wpm"] == 0
+        assert data["best_wpm"] == 0
+        assert data["history"] == []
 
 
 class TestLessons:

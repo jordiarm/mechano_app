@@ -18,7 +18,7 @@ templates/index.html          # Single-page app (test, learn, stats views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (26 tests)
+tests/test_api.py             # API route tests (30 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -54,6 +54,7 @@ pytest -v             # Run tests
 - Weak keys practice generates words weighted toward the user's most-missed characters
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
+- Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s); `/api/stats` and `/api/results` accept an optional `?duration=` query param
 
 ## Database tables
 
@@ -70,3 +71,9 @@ pytest -v             # Run tests
 - **What:** `app.py` had unused imports (`json`, `datetime`) and a duplicate `if`/`elif` branch (ruff SIM114). `tests/conftest.py` had unused imports (`tempfile`, `Path`). All lesson/passage data strings exceeded the 120-char line limit (E501).
 - **Why:** The unused imports were left over from earlier development. The SIM114 was two branches with identical bodies that could be combined with `or`. E501 violations were unavoidable in content strings.
 - **Fix:** Removed unused imports. Combined the duplicate branches into `if idx == 0 or all_ids[idx - 1] in completed:`. Added `E501` to ruff's ignore list in `pyproject.toml` since long lines in data strings are expected and harmless.
+
+### 2026-03-20 — Wrong test assertions for duration filter "no match" case
+
+- **What:** `test_stats_filtered_by_duration_no_match` failed because it asserted `best_wpm == 75.0` and `avg_accuracy == 96.5` — values from the seed data — when filtering by duration=15 which has zero matching results.
+- **Why:** Copy-paste error from the positive test case. The "no match" test should assert all values are zero/empty since no results exist for that duration.
+- **Fix:** Replaced assertions with `best_wpm == 0` and `history == []`. Lesson: always review assertion values against the test scenario, especially for negative/empty cases.
