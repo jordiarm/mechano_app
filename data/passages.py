@@ -103,4 +103,24 @@ PASSAGES = [
         "title": "Observability",
         "text": "Observability is the ability to measure the internal states of a system by examining its outputs. In software, this means understanding what is happening inside your applications through three pillars: logs, metrics, and traces. Logs record discrete events. Metrics track numeric measurements over time. Traces follow a request as it flows through distributed services. Together they provide a complete picture of system health.",
     },
+    {
+        "title": "WebAssembly",
+        "text": "WebAssembly is a binary instruction format designed as a portable compilation target for programming languages. It enables high performance applications to run in web browsers at near native speed. Languages like C, C++, and Rust can be compiled to WebAssembly, allowing developers to bring computationally intensive workloads to the browser without relying solely on JavaScript.",
+    },
+    {
+        "title": "Cryptography",
+        "text": "Cryptography is the practice of securing communication and data through the use of mathematical algorithms. Symmetric encryption uses the same key for both encryption and decryption, while asymmetric encryption relies on a public and private key pair. Hash functions produce fixed length outputs from arbitrary input, providing data integrity verification without revealing the original content.",
+    },
+    {
+        "title": "Distributed Systems",
+        "text": "A distributed system is a collection of independent computers that appears to its users as a single coherent system. These systems face unique challenges such as network partitions, variable latency, and the impossibility of achieving perfect consensus in asynchronous networks. The CAP theorem states that a distributed system can only guarantee two of three properties at any time: consistency, availability, and partition tolerance.",
+    },
+    {
+        "title": "Type Systems in Programming",
+        "text": "A type system is a set of rules that assigns a property called a type to every term in a program. Static type systems catch errors at compile time, while dynamic type systems defer type checking to runtime. Strongly typed languages prevent implicit type conversions that could lead to subtle bugs. Modern type systems support generics, algebraic data types, and type inference to balance safety with expressiveness.",
+    },
+    {
+        "title": "Concurrency and Parallelism",
+        "text": "Concurrency is the ability of a program to manage multiple tasks by interleaving their execution, while parallelism is the simultaneous execution of tasks across multiple processors. Common concurrency primitives include threads, locks, and channels. Race conditions occur when multiple threads access shared data without proper synchronization, leading to unpredictable behavior that is notoriously difficult to reproduce and debug.",
+    },
 ]
