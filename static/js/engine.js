@@ -561,8 +561,9 @@
             $("#stat-best-streak").textContent = data.best_streak;
             $("#stat-total-chars").textContent = data.total_chars_typed.toLocaleString();
 
-            // Chart
+            // Charts
             renderChart(data.history);
+            renderAccuracyChart(data.history);
 
             // History table
             const res2 = await fetch("/api/results?limit=20");
@@ -677,6 +678,114 @@
                 let left = svgRect.left - canvasRect.left + p.x - tooltip.offsetWidth / 2;
                 let top = svgRect.top - canvasRect.top + p.y - tooltip.offsetHeight - 12;
                 // Clamp to container
+                left = Math.max(0, Math.min(left, canvasRect.width - tooltip.offsetWidth));
+                if (top < 0) top = svgRect.top - canvasRect.top + p.y + 16;
+                tooltip.style.left = left + "px";
+                tooltip.style.top = top + "px";
+                tooltip.classList.add("visible");
+            });
+            circle.addEventListener("mouseleave", () => {
+                tooltip.classList.remove("visible");
+            });
+        });
+    }
+
+    function renderAccuracyChart(history) {
+        const svg = $("#chart-accuracy");
+        const chartCanvas = svg.closest(".chart-canvas");
+
+        const oldTooltip = chartCanvas.querySelector(".chart-tooltip");
+        if (oldTooltip) oldTooltip.remove();
+
+        if (!history || history.length === 0) {
+            svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#484f58" font-family="monospace" font-size="14">no data yet</text>';
+            return;
+        }
+
+        const data = [...history].reverse();
+        const w = svg.clientWidth || 900;
+        const h = svg.clientHeight || 200;
+        const pad = { top: 20, right: 20, bottom: 30, left: 45 };
+        const plotW = w - pad.left - pad.right;
+        const plotH = h - pad.top - pad.bottom;
+
+        const accValues = data.map((d) => d.accuracy);
+        const maxAcc = Math.min(Math.max(...accValues, 10) + 2, 100);
+        const minAcc = Math.max(Math.min(...accValues) - 5, 0);
+        const range = maxAcc - minAcc || 10;
+
+        const xStep = data.length > 1 ? plotW / (data.length - 1) : plotW / 2;
+
+        const points = data.map((d, i) => ({
+            x: pad.left + i * xStep,
+            y: pad.top + plotH - ((d.accuracy - minAcc) / range) * plotH,
+            wpm: d.wpm,
+            accuracy: d.accuracy,
+            streak: d.streak,
+            date: d.created_at,
+        }));
+
+        let pathD = "";
+        let areaD = "";
+        let dots = "";
+
+        points.forEach((p, i) => {
+            if (i === 0) {
+                pathD += `M ${p.x} ${p.y}`;
+                areaD += `M ${p.x} ${pad.top + plotH} L ${p.x} ${p.y}`;
+            } else {
+                pathD += ` L ${p.x} ${p.y}`;
+                areaD += ` L ${p.x} ${p.y}`;
+            }
+            dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#3fb950" opacity="0.8"/>`;
+            dots += `<circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" data-point="${i}" class="chart-hit"/>`;
+        });
+        areaD += ` L ${points[points.length - 1].x} ${pad.top + plotH} Z`;
+
+        const styles = getComputedStyle(document.documentElement);
+        const chartLabelColor = styles.getPropertyValue("--chart-label").trim();
+        const chartGridColor = styles.getPropertyValue("--chart-grid").trim();
+        const greenColor = styles.getPropertyValue("--green").trim() || "#3fb950";
+
+        let yLabels = "";
+        for (let i = 0; i <= 4; i++) {
+            const val = Math.round(minAcc + (range / 4) * i);
+            const y = pad.top + plotH - (plotH / 4) * i;
+            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="${chartLabelColor}" font-size="10" font-family="monospace">${val}%</text>`;
+            yLabels += `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="${chartGridColor}" stroke-width="1"/>`;
+        }
+
+        svg.innerHTML = `
+            ${yLabels}
+            <path d="${areaD}" fill="url(#acc-area-gradient)" opacity="0.3"/>
+            <path d="${pathD}" fill="none" stroke="${greenColor}" stroke-width="2"/>
+            ${dots}
+            <defs>
+                <linearGradient id="acc-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="${greenColor}" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="${greenColor}" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+        `;
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "chart-tooltip";
+        chartCanvas.appendChild(tooltip);
+
+        svg.querySelectorAll(".chart-hit").forEach((circle) => {
+            circle.addEventListener("mouseenter", () => {
+                const idx = parseInt(circle.dataset.point);
+                const p = points[idx];
+                const dateStr = p.date ? new Date(p.date + "Z").toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+                tooltip.innerHTML = `
+                    <div class="chart-tooltip-wpm">${Math.round(p.accuracy)}% accuracy</div>
+                    <div class="chart-tooltip-acc">${Math.round(p.wpm)} WPM</div>
+                    <div class="chart-tooltip-date">${dateStr}</div>
+                `;
+                const canvasRect = chartCanvas.getBoundingClientRect();
+                const svgRect = svg.getBoundingClientRect();
+                let left = svgRect.left - canvasRect.left + p.x - tooltip.offsetWidth / 2;
+                let top = svgRect.top - canvasRect.top + p.y - tooltip.offsetHeight - 12;
                 left = Math.max(0, Math.min(left, canvasRect.width - tooltip.offsetWidth));
                 if (top < 0) top = svgRect.top - canvasRect.top + p.y + 16;
                 tooltip.style.left = left + "px";
