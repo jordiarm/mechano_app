@@ -203,7 +203,6 @@ WORD_POOL = [
     "away",
     "before",
     "below",
-    "between",
     "came",
     "does",
     "down",
@@ -229,7 +228,6 @@ WORD_POOL = [
     "old",
     "once",
     "order",
-    "own",
     "part",
     "play",
     "put",
@@ -255,7 +253,6 @@ WORD_POOL = [
     "another",
     "around",
     "ask",
-    "away",
     "began",
     "best",
     "better",
@@ -271,7 +268,6 @@ WORD_POOL = [
     "dark",
     "deep",
     "done",
-    "door",
     "draw",
     "early",
     "enough",
@@ -315,7 +311,6 @@ WORD_POOL = [
     "later",
     "leave",
     "less",
-    "letter",
     "list",
     "listen",
     "lost",
@@ -330,10 +325,7 @@ WORD_POOL = [
     "near",
     "nothing",
     "notice",
-    "often",
-    "once",
     "pair",
-    "paper",
     "pass",
     "past",
     "pattern",
@@ -354,7 +346,6 @@ WORD_POOL = [
     "room",
     "round",
     "rule",
-    "run",
     "second",
     "seen",
     "sentence",
@@ -392,7 +383,6 @@ WORD_POOL = [
     "voice",
     "war",
     "warm",
-    "watch",
     "whether",
     "wind",
     "winter",
@@ -401,8 +391,6 @@ WORD_POOL = [
     "wonder",
     "wood",
     "wrote",
-    "year",
-    "young",
     "able",
     "above",
     "across",
@@ -423,7 +411,6 @@ WORD_POOL = [
     "bottom",
     "break",
     "bright",
-    "bring",
     "busy",
     "build",
     "built",
@@ -463,7 +450,6 @@ WORD_POOL = [
     "drive",
     "drop",
     "dry",
-    "during",
     "east",
     "eat",
     "edge",
@@ -546,7 +532,6 @@ WORD_POOL = [
     "lie",
     "lift",
     "likely",
-    "line",
     "liquid",
     "log",
     "lot",
@@ -748,7 +733,6 @@ WORD_POOL = [
     "thin",
     "tiny",
     "tire",
-    "together",
     "tone",
     "tool",
     "touch",
@@ -813,10 +797,8 @@ WORD_POOL = [
     "response",
     "database",
     "query",
-    "table",
     "column",
     "deploy",
-    "build",
     "debug",
     "error",
     "stack",
@@ -827,8 +809,6 @@ WORD_POOL = [
     "branch",
     "merge",
     "commit",
-    "push",
-    "pull",
     "clone",
     "fetch",
     "docker",
@@ -918,11 +898,8 @@ WORD_POOL = [
     "prefix",
     "private",
     "profile",
-    "promise",
     "protocol",
-    "public",
     "publish",
-    "record",
     "redirect",
     "refactor",
     "reference",
@@ -947,7 +924,6 @@ WORD_POOL = [
     "spawn",
     "static",
     "status",
-    "store",
     "struct",
     "subscribe",
     "suffix",
@@ -991,7 +967,6 @@ WORD_POOL = [
     "broadcast",
     "bucket",
     "bundle",
-    "cache",
     "channel",
     "checkpoint",
     "chunk",
@@ -1037,7 +1012,6 @@ WORD_POOL = [
     "emulator",
     "environment",
     "evaluate",
-    "event",
     "extend",
     "extract",
     "failover",
@@ -1046,7 +1020,6 @@ WORD_POOL = [
     "fixture",
     "format",
     "fragment",
-    "function",
     "garbage",
     "generic",
     "global",
@@ -1060,7 +1033,6 @@ WORD_POOL = [
     "immutable",
     "implement",
     "increment",
-    "index",
     "inherit",
     "initialize",
     "inject",
@@ -1074,7 +1046,6 @@ WORD_POOL = [
     "invoke",
     "isolate",
     "iterator",
-    "kernel",
     "keystore",
     "latency",
     "launch",
@@ -1087,11 +1058,9 @@ WORD_POOL = [
     "lookup",
     "linter",
     "marshal",
-    "method",
     "metric",
     "microservice",
     "minify",
-    "module",
     "monitor",
     "mount",
     "multicast",
@@ -1103,7 +1072,6 @@ WORD_POOL = [
     "opaque",
     "orchestrate",
     "override",
-    "package",
     "parallel",
     "partition",
     "persist",
@@ -1119,15 +1087,11 @@ WORD_POOL = [
     "priority",
     "procedure",
     "producer",
-    "program",
     "propagate",
     "property",
     "prototype",
     "provision",
-    "proxy",
     "purge",
-    "query",
-    "queue",
     "random",
     "reactive",
     "readonly",
@@ -1137,14 +1101,10 @@ WORD_POOL = [
     "reduce",
     "regex",
     "relay",
-    "render",
     "repository",
-    "request",
-    "response",
     "restore",
     "rollback",
     "router",
-    "runtime",
     "scalar",
     "schedule",
     "segment",
@@ -1156,54 +1116,38 @@ WORD_POOL = [
     "shim",
     "singleton",
     "slice",
-    "socket",
-    "sort",
     "splice",
-    "stack",
     "staging",
-    "state",
     "strategy",
     "stringify",
     "subnet",
-    "subscribe",
     "suspend",
     "swap",
     "switch",
     "symlink",
     "sync",
-    "table",
     "tenant",
-    "test",
-    "thread",
     "throttle",
-    "token",
     "topology",
     "trait",
     "transaction",
     "transform",
     "traverse",
-    "type",
     "union",
     "unique",
     "unlock",
     "unmount",
     "unpack",
-    "upstream",
     "utility",
-    "validate",
-    "variable",
     "vector",
     "vendor",
     "viewport",
-    "virtual",
-    "volume",
     "watchdog",
     "websocket",
     "widget",
     "wildcard",
     "workflow",
     "workspace",
-    "yield",
     "zero",
     "zip",
 ]
@@ -1678,20 +1622,17 @@ def init_db():
     db.close()
 
 
+_LESSON_BY_ID = {lesson["id"]: lesson for level in LESSONS for lesson in level["lessons"]}
+
+_ALL_LESSON_IDS = [lesson["id"] for level in LESSONS for lesson in level["lessons"]]
+
+
 def _get_lesson_by_id(lesson_id):
-    for level in LESSONS:
-        for lesson in level["lessons"]:
-            if lesson["id"] == lesson_id:
-                return lesson
-    return None
+    return _LESSON_BY_ID.get(lesson_id)
 
 
 def _get_all_lesson_ids():
-    ids = []
-    for level in LESSONS:
-        for lesson in level["lessons"]:
-            ids.append(lesson["id"])
-    return ids
+    return _ALL_LESSON_IDS
 
 
 # --- Routes ---
@@ -1749,13 +1690,12 @@ def get_results():
     db = get_db()
     limit = request.args.get("limit", 50, type=int)
     duration = request.args.get("duration", None, type=int)
-    if duration:
-        rows = db.execute(
-            "SELECT * FROM results WHERE duration = ? ORDER BY created_at DESC LIMIT ?",
-            (duration, limit),
-        ).fetchall()
-    else:
-        rows = db.execute("SELECT * FROM results ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+    where = "WHERE duration = ?" if duration else ""
+    params = (duration, limit) if duration else (limit,)
+    rows = db.execute(
+        f"SELECT * FROM results {where} ORDER BY created_at DESC LIMIT ?",
+        params,
+    ).fetchall()
     results = [dict(row) for row in rows]
     return jsonify({"results": results})
 
@@ -1764,38 +1704,25 @@ def get_results():
 def get_stats():
     db = get_db()
     duration = request.args.get("duration", None, type=int)
-    if duration:
-        row = db.execute(
-            """
-            SELECT
-                COUNT(*) as total_tests,
-                COALESCE(AVG(wpm), 0) as avg_wpm,
-                COALESCE(MAX(wpm), 0) as best_wpm,
-                COALESCE(AVG(accuracy), 0) as avg_accuracy,
-                COALESCE(MAX(streak), 0) as best_streak,
-                COALESCE(SUM(total_chars), 0) as total_chars_typed
-            FROM results WHERE duration = ?
-        """,
-            (duration,),
-        ).fetchone()
-        recent = db.execute(
-            "SELECT wpm, accuracy, streak, created_at FROM results WHERE duration = ? ORDER BY created_at DESC LIMIT 30",
-            (duration,),
-        ).fetchall()
-    else:
-        row = db.execute("""
-            SELECT
-                COUNT(*) as total_tests,
-                COALESCE(AVG(wpm), 0) as avg_wpm,
-                COALESCE(MAX(wpm), 0) as best_wpm,
-                COALESCE(AVG(accuracy), 0) as avg_accuracy,
-                COALESCE(MAX(streak), 0) as best_streak,
-                COALESCE(SUM(total_chars), 0) as total_chars_typed
-            FROM results
-        """).fetchone()
-        recent = db.execute(
-            "SELECT wpm, accuracy, streak, created_at FROM results ORDER BY created_at DESC LIMIT 30"
-        ).fetchall()
+    where = "WHERE duration = ?" if duration else ""
+    params = (duration,) if duration else ()
+    row = db.execute(
+        f"""
+        SELECT
+            COUNT(*) as total_tests,
+            COALESCE(AVG(wpm), 0) as avg_wpm,
+            COALESCE(MAX(wpm), 0) as best_wpm,
+            COALESCE(AVG(accuracy), 0) as avg_accuracy,
+            COALESCE(MAX(streak), 0) as best_streak,
+            COALESCE(SUM(total_chars), 0) as total_chars_typed
+        FROM results {where}
+    """,
+        params,
+    ).fetchone()
+    recent = db.execute(
+        f"SELECT wpm, accuracy, streak, created_at FROM results {where} ORDER BY created_at DESC LIMIT 30",
+        params,
+    ).fetchall()
     stats = dict(row)
     stats["history"] = [dict(r) for r in recent]
 
@@ -1817,6 +1744,7 @@ def get_lessons():
     best_stats = {row["lesson_id"]: dict(row) for row in best_rows}
 
     all_ids = _get_all_lesson_ids()
+    id_to_idx = {lid: i for i, lid in enumerate(all_ids)}
     result = []
     for level in LESSONS:
         level_data = {
@@ -1826,7 +1754,7 @@ def get_lessons():
         }
         for lesson in level["lessons"]:
             lid = lesson["id"]
-            idx = all_ids.index(lid)
+            idx = id_to_idx[lid]
             # Available if first lesson or previous lesson completed
             if idx == 0 or all_ids[idx - 1] in completed:
                 status = "completed" if lid in completed else "available"
@@ -1882,11 +1810,10 @@ def save_char_errors():
     if not errors:
         return jsonify({"status": "ok"})
     db = get_db()
-    for err in errors:
-        db.execute(
-            "INSERT INTO char_errors (expected_char, typed_char) VALUES (?, ?)",
-            (err["expected"], err["typed"]),
-        )
+    db.executemany(
+        "INSERT INTO char_errors (expected_char, typed_char) VALUES (?, ?)",
+        [(err["expected"], err["typed"]) for err in errors],
+    )
     db.commit()
     return jsonify({"status": "ok"})
 
