@@ -52,9 +52,9 @@ Then open [http://localhost:5555](http://localhost:5555) in your browser.
 app.py                        # Flask app, API routes, auth, SQLite setup, helpers
 data/                         # Static data constants
   __init__.py                 # Re-exports all data constants
-  words.py                    # WORD_POOL — English + programming word list
+  words.py                    # WORD_POOL — 2,278 English + programming words
   lessons.py                  # LESSONS — progressive typing lessons
-  passages.py                 # PASSAGES — longer prose texts
+  passages.py                 # PASSAGES — 31 longer prose texts
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration

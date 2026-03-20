@@ -19,9 +19,9 @@ Typing speed tracker and training app built with Flask.
 app.py                        # Flask app, API routes, auth, SQLite setup, helpers
 data/                         # Static data constants (extracted from app.py)
   __init__.py                 # Re-exports all data constants
-  words.py                    # WORD_POOL — English + programming word list
+  words.py                    # WORD_POOL — 2,278 English + programming words
   lessons.py                  # LESSONS — progressive typing lessons
-  passages.py                 # PASSAGES — longer prose texts
+  passages.py                 # PASSAGES — 31 longer prose texts
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
@@ -68,7 +68,7 @@ pytest -v             # Run tests
 - User authentication via Flask sessions and werkzeug password hashing; all data is scoped per user via `user_id` FK columns
 - All data (test results, lesson progress, character errors) is stored in SQLite locally — no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
-- Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`)
+- Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`); practice text is deduplicated via `random.sample` (no repeated words)
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable

@@ -116,16 +116,84 @@
         if (!settings.keySound) return;
         try {
             const ctx = getAudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = "square";
-            osc.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
-            gain.gain.setValueAtTime(0.03, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.05);
+            const t = ctx.currentTime;
+
+            // --- Click transient (bright, sharp snap) ---
+            const clickBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.006), ctx.sampleRate);
+            const clickData = clickBuf.getChannelData(0);
+            for (let i = 0; i < clickData.length; i++) {
+                const env = 1 - i / clickData.length;
+                clickData[i] = (Math.random() * 2 - 1) * env * env * env;
+            }
+            const clickSrc = ctx.createBufferSource();
+            clickSrc.buffer = clickBuf;
+            const clickGain = ctx.createGain();
+            clickGain.gain.setValueAtTime(0.28, t);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.006);
+            const clickFilter = ctx.createBiquadFilter();
+            clickFilter.type = "bandpass";
+            clickFilter.frequency.setValueAtTime(6000 + Math.random() * 2000, t);
+            clickFilter.Q.setValueAtTime(2.5, t);
+            clickSrc.connect(clickFilter);
+            clickFilter.connect(clickGain);
+            clickGain.connect(ctx.destination);
+            clickSrc.start(t);
+
+            // --- Second click (Cherry MX-style double click) ---
+            const click2Buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.004), ctx.sampleRate);
+            const click2Data = click2Buf.getChannelData(0);
+            for (let i = 0; i < click2Data.length; i++) {
+                const env = 1 - i / click2Data.length;
+                click2Data[i] = (Math.random() * 2 - 1) * env * env;
+            }
+            const click2Src = ctx.createBufferSource();
+            click2Src.buffer = click2Buf;
+            const click2Gain = ctx.createGain();
+            click2Gain.gain.setValueAtTime(0.15, t + 0.012);
+            click2Gain.gain.exponentialRampToValueAtTime(0.001, t + 0.018);
+            const click2Filter = ctx.createBiquadFilter();
+            click2Filter.type = "highpass";
+            click2Filter.frequency.setValueAtTime(5000 + Math.random() * 1500, t);
+            click2Filter.Q.setValueAtTime(1.2, t);
+            click2Src.connect(click2Filter);
+            click2Filter.connect(click2Gain);
+            click2Gain.connect(ctx.destination);
+            click2Src.start(t + 0.012);
+
+            // --- Light body tap (subtle, not boomy) ---
+            const tapOsc = ctx.createOscillator();
+            tapOsc.type = "sine";
+            tapOsc.frequency.setValueAtTime(800 + Math.random() * 200, t);
+            tapOsc.frequency.exponentialRampToValueAtTime(400, t + 0.025);
+            const tapGain = ctx.createGain();
+            tapGain.gain.setValueAtTime(0.03, t);
+            tapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+            tapOsc.connect(tapGain);
+            tapGain.connect(ctx.destination);
+            tapOsc.start(t);
+            tapOsc.stop(t + 0.025);
+
+            // --- Creamy high-end tail ---
+            const tailLen = 0.02;
+            const tailBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * tailLen), ctx.sampleRate);
+            const tailData = tailBuf.getChannelData(0);
+            for (let i = 0; i < tailData.length; i++) {
+                const env = Math.exp(-i / (tailData.length * 0.15));
+                tailData[i] = (Math.random() * 2 - 1) * env;
+            }
+            const tailSrc = ctx.createBufferSource();
+            tailSrc.buffer = tailBuf;
+            const tailGain = ctx.createGain();
+            tailGain.gain.setValueAtTime(0.04, t);
+            tailGain.gain.exponentialRampToValueAtTime(0.001, t + tailLen);
+            const tailFilter = ctx.createBiquadFilter();
+            tailFilter.type = "bandpass";
+            tailFilter.frequency.setValueAtTime(4000 + Math.random() * 1000, t);
+            tailFilter.Q.setValueAtTime(1.0, t);
+            tailSrc.connect(tailFilter);
+            tailFilter.connect(tailGain);
+            tailGain.connect(ctx.destination);
+            tailSrc.start(t);
         } catch (_) {}
     }
 
