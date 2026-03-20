@@ -225,34 +225,34 @@
 
             <div class="stats-overview" id="stats-overview">
                 <div class="stat-card">
-                    <div class="stat-card-value accent" id="stat-total-tests">0</div>
-                    <div class="stat-card-label">tests taken</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value accent" id="stat-avg-wpm">0</div>
-                    <div class="stat-card-label">avg wpm</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value green" id="stat-best-wpm">0</div>
+                    <div class="stat-card-value neon-cyan" id="stat-best-wpm">0</div>
                     <div class="stat-card-label">best wpm</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-value green" id="stat-avg-accuracy">0</div>
-                    <div class="stat-card-label">avg accuracy %</div>
+                    <div class="stat-card-value neon-lime" id="stat-best-kps">0</div>
+                    <div class="stat-card-label">best keys/sec</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-value yellow" id="stat-best-streak">0</div>
+                    <div class="stat-card-value neon-orange" id="stat-best-streak">0</div>
                     <div class="stat-card-label">best streak</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-value purple" id="stat-total-chars">0</div>
-                    <div class="stat-card-label">total chars</div>
+                    <div class="stat-card-value neon-pink" id="stat-avg-wpm">0</div>
+                    <div class="stat-card-label">avg wpm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value neon-violet" id="stat-avg-kps">0</div>
+                    <div class="stat-card-label">avg keys/sec</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value neon-yellow" id="stat-avg-accuracy">0</div>
+                    <div class="stat-card-label">avg accuracy %</div>
                 </div>
             </div>
 
             <!-- WPM Chart -->
             <div class="chart-container">
-                <div class="chart-title">WPM Over Last 30 Tests</div>
+                <div class="chart-title">WPM Over Last 60 Tests</div>
                 <div class="chart-canvas">
                     <svg class="chart-svg" id="chart-wpm"></svg>
                 </div>
@@ -260,7 +260,7 @@
 
             <!-- Accuracy Chart -->
             <div class="chart-container">
-                <div class="chart-title">Accuracy Over Last 30 Tests</div>
+                <div class="chart-title">Accuracy Over Last 60 Tests</div>
                 <div class="chart-canvas">
                     <svg class="chart-svg" id="chart-accuracy"></svg>
                 </div>
