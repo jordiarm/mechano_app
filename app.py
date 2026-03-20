@@ -473,6 +473,42 @@ def save_char_errors():
     return jsonify({"status": "ok"})
 
 
+@app.route("/api/leaderboard", methods=["GET"])
+@login_required
+def get_leaderboard():
+    db = get_db()
+    clauses = []
+    params = []
+    duration = request.args.get("duration", None, type=int)
+    mode = request.args.get("mode", None, type=str)
+    if duration:
+        clauses.append("r.duration = ?")
+        params.append(duration)
+    if mode:
+        clauses.append("r.mode = ?")
+        params.append(mode)
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    rows = db.execute(
+        f"""
+        SELECT
+            u.username,
+            COALESCE(MAX(r.wpm), 0) as best_wpm,
+            COALESCE(ROUND(AVG(r.wpm), 1), 0) as avg_wpm,
+            COALESCE(ROUND(AVG(r.accuracy), 1), 0) as avg_accuracy,
+            COUNT(*) as total_tests
+        FROM results r
+        JOIN users u ON r.user_id = u.id
+        {where}
+        GROUP BY r.user_id, u.username
+        ORDER BY best_wpm DESC
+        LIMIT 100
+        """,
+        params,
+    ).fetchall()
+    entries = [dict(row) for row in rows]
+    return jsonify({"leaderboard": entries, "current_user": session.get("username")})
+
+
 @app.route("/api/weak-keys", methods=["GET"])
 @login_required
 def get_weak_keys():

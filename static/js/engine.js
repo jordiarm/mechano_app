@@ -675,6 +675,63 @@
     let statsDuration = 60;
     let statsMode = null;
 
+    // --- Leaderboard View ---
+    let lbDuration = 60;
+    let lbMode = null;
+
+    function buildLbQuery() {
+        const params = [];
+        if (lbDuration) params.push(`duration=${lbDuration}`);
+        if (lbMode) params.push(`mode=${lbMode}`);
+        return params.length > 0 ? "?" + params.join("&") : "";
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const query = buildLbQuery();
+            const res = await apiFetch(`/api/leaderboard${query}`);
+            const data = await res.json();
+            renderLeaderboard(data.leaderboard, data.current_user);
+        } catch (_) {}
+    }
+
+    function renderLeaderboard(entries, currentUser) {
+        const tbody = $("#leaderboard-body");
+        const empty = $("#leaderboard-empty");
+
+        if (!entries || entries.length === 0) {
+            tbody.innerHTML = "";
+            empty.style.display = "block";
+            return;
+        }
+
+        const rankLabel = (i) => ["1st", "2nd", "3rd"][i] || `${i + 1}th`;
+        const rankColor = (i) => [
+            "var(--neon-yellow)",
+            "var(--text-secondary)",
+            "var(--neon-orange)",
+        ][i] || "var(--text-muted)";
+
+        empty.style.display = "none";
+        tbody.innerHTML = entries
+            .map((e, i) => {
+                const isYou = e.username === currentUser;
+                const youTag = isYou
+                    ? ' <span style="color:var(--text-muted);font-size:0.7rem">(you)</span>'
+                    : "";
+                return `
+                <tr class="${isYou ? "leaderboard-you" : ""}">
+                    <td style="color: ${rankColor(i)}">${rankLabel(i)}</td>
+                    <td style="color: ${isYou ? "var(--accent)" : "var(--text-primary)"};font-weight:${isYou ? "600" : "400"}">${e.username}${youTag}</td>
+                    <td style="color: var(--neon-cyan)">${Math.round(e.best_wpm)}</td>
+                    <td style="color: var(--accent)">${Math.round(e.avg_wpm)}</td>
+                    <td style="color: var(--green)">${Math.round(e.avg_accuracy)}%</td>
+                    <td style="color: var(--text-muted)">${e.total_tests}</td>
+                </tr>`;
+            })
+            .join("");
+    }
+
     function buildStatsQuery() {
         const params = [];
         if (statsDuration) params.push(`duration=${statsDuration}`);
@@ -1890,6 +1947,26 @@
             });
         });
 
+        // Leaderboard mode filter
+        $$("[data-lb-mode]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-lb-mode]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                lbMode = btn.dataset.lbMode === "all" ? null : btn.dataset.lbMode;
+                loadLeaderboard();
+            });
+        });
+
+        // Leaderboard duration filter
+        $$("[data-lb-duration]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-lb-duration]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                lbDuration = btn.dataset.lbDuration === "all" ? null : parseInt(btn.dataset.lbDuration);
+                loadLeaderboard();
+            });
+        });
+
         // Nav tabs
         $$(".nav-tab").forEach((tab) => {
             tab.addEventListener("click", () => {
@@ -1899,6 +1976,7 @@
                 $(`#view-${tab.dataset.view}`).classList.add("active");
 
                 if (tab.dataset.view === "stats") loadStats();
+                if (tab.dataset.view === "leaderboard") loadLeaderboard();
                 if (tab.dataset.view === "learn") { loadWeakKeysPreview(); loadLessons(); }
             });
         });

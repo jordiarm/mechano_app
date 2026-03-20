@@ -880,6 +880,15 @@ body.no-scanlines::after {
     font-size: 0.85rem;
 }
 
+/* ===== LEADERBOARD ===== */
+.leaderboard-you td {
+    background: var(--accent-dim);
+}
+
+.leaderboard-you:hover td {
+    background: var(--accent-dim) !important;
+}
+
 /* ===== PASSAGE SELECT ===== */
 .passage-select-overlay {
     display: none;

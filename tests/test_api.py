@@ -468,3 +468,68 @@ class TestUserScoping:
         data = resp.get_json()
         assert len(data["results"]) == 1
         assert data["results"][0]["wpm"] == 50.0
+
+
+class TestLeaderboard:
+    def test_leaderboard_unauthenticated(self, client):
+        resp = client.get("/api/leaderboard", headers={"Content-Type": "application/json"})
+        assert resp.status_code == 401
+
+    def test_leaderboard_empty(self, auth_client):
+        resp = auth_client.get("/api/leaderboard")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["leaderboard"] == []
+        assert data["current_user"] == "testuser"
+
+    def test_leaderboard_with_results(self, auth_client, seed_results):
+        resp = auth_client.get("/api/leaderboard")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        lb = data["leaderboard"]
+        assert len(lb) == 1
+        assert lb[0]["username"] == "testuser"
+        assert lb[0]["best_wpm"] == 75.0
+        assert lb[0]["total_tests"] == 2
+
+    def test_leaderboard_filtered_by_duration(self, auth_client, seed_results):
+        resp = auth_client.get("/api/leaderboard?duration=60")
+        data = resp.get_json()
+        assert len(data["leaderboard"]) == 1
+        assert data["leaderboard"][0]["best_wpm"] == 75.0
+
+    def test_leaderboard_filtered_by_mode(self, auth_client, seed_results):
+        resp = auth_client.get("/api/leaderboard?mode=words")
+        data = resp.get_json()
+        assert len(data["leaderboard"]) == 1
+        assert data["leaderboard"][0]["best_wpm"] == 60.0
+
+    def test_leaderboard_no_match_filter(self, auth_client, seed_results):
+        resp = auth_client.get("/api/leaderboard?duration=15")
+        data = resp.get_json()
+        assert data["leaderboard"] == []
+
+    def test_leaderboard_ranking_order(self, auth_client, app, user):
+        db = sqlite3.connect(app_module.DATABASE)
+        cursor = db.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            ("speedster", generate_password_hash("pass")),
+        )
+        uid2 = cursor.lastrowid
+        db.execute(
+            "INSERT INTO results (user_id, wpm, accuracy, errors, total_chars, correct_chars, streak, duration, mode) "
+            "VALUES (?, 120.0, 99.0, 1, 400, 396, 50, 60, 'words')",
+            (uid2,),
+        )
+        db.execute(
+            "INSERT INTO results (user_id, wpm, accuracy, errors, total_chars, correct_chars, streak, duration, mode) "
+            "VALUES (?, 50.0, 90.0, 10, 200, 180, 5, 60, 'words')",
+            (user,),
+        )
+        db.commit()
+        db.close()
+
+        resp = auth_client.get("/api/leaderboard")
+        lb = resp.get_json()["leaderboard"]
+        assert lb[0]["username"] == "speedster"
+        assert lb[1]["username"] == "testuser"

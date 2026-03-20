@@ -26,11 +26,11 @@ data/                         # Static data constants (extracted from app.py)
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
 templates/auth.html           # Login and registration page
-templates/index.html          # Single-page app (test, learn, stats views)
+templates/index.html          # Single-page app (test, learn, stats, leaderboard views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (54 tests)
+tests/test_api.py             # API route tests (61 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -74,6 +74,7 @@ pytest -v             # Run tests
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
 - Stats overview cards and charts are scoped to the last 60 tests (not all-time); `/api/stats` aggregates via a subquery with `LIMIT 60`
 - Stats cards: avg WPM, best WPM, avg accuracy, avg keys/sec, best keys/sec, best streak; `avg_kps` and `best_kps` are computed as `total_chars / duration`
+- Leaderboard view (`/api/leaderboard`) ranks all users by best WPM (GROUP BY user, ORDER BY MAX(wpm) DESC, LIMIT 100); supports the same `?duration=` and `?mode=` filters as stats; returns `current_user` so the client can highlight the logged-in user's row; top 3 rows styled gold/silver/bronze
 - `WORD_POOL` is deduplicated; lesson lookups use pre-built dicts (`_LESSON_BY_ID`, `_ALL_LESSON_IDS`) for O(1) access
 - `char_errors` bulk insert uses `executemany`; `get_results`/`get_stats` use parameterized WHERE clauses instead of duplicated SQL branches
 - `engine.js` shares a `renderTextToDisplay()` helper across test/lesson/weak-keys modes, and a `renderLineChart()` helper for both WPM and accuracy charts
