@@ -307,6 +307,32 @@
         passageOverlay.classList.add("active");
     }
 
+    function renderTextToDisplay(text, displayEl, inputEl, hintEl) {
+        const words = text.split(" ");
+        let html = "";
+        let charIdx = 0;
+        words.forEach((word, wi) => {
+            html += '<span class="word">';
+            for (let j = 0; j < word.length; j++) {
+                const c = escapeHtml(word[j]);
+                const cls = charIdx === 0 ? "char current" : "char upcoming";
+                html += `<span class="${cls}" data-index="${charIdx}">${c}</span>`;
+                charIdx++;
+            }
+            html += '</span>';
+            if (wi < words.length - 1) {
+                const cls = charIdx === 0 ? "char current" : "char upcoming";
+                html += `<span class="${cls}" data-index="${charIdx}">&nbsp;</span>`;
+                charIdx++;
+            }
+        });
+        displayEl.innerHTML = html;
+        inputEl.value = "";
+        displayEl.style.transform = "translateY(0)";
+        hintEl.style.display = "";
+        hintEl.style.opacity = "1";
+    }
+
     function renderText() {
         state.chars = state.text.split("");
         state.currentIndex = 0;
@@ -321,32 +347,7 @@
         clearInterval(state.timerInterval);
         state.timeLeft = state.duration;
 
-        // Group chars into words to prevent mid-word line breaks
-        const words = state.text.split(" ");
-        let html = "";
-        let charIdx = 0;
-        words.forEach((word, wi) => {
-            html += '<span class="word">';
-            for (let j = 0; j < word.length; j++) {
-                const c = escapeHtml(word[j]);
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">${c}</span>`;
-                charIdx++;
-            }
-            html += '</span>';
-            // Add space between words (not after last word)
-            if (wi < words.length - 1) {
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">&nbsp;</span>`;
-                charIdx++;
-            }
-        });
-        textDisplay.innerHTML = html;
-
-        hiddenInput.value = "";
-        textDisplay.style.transform = "translateY(0)";
-        clickHint.style.display = "";
-        clickHint.style.opacity = "1";
+        renderTextToDisplay(state.text, textDisplay, hiddenInput, clickHint);
         updateLiveStats();
         updateTimerDisplay();
         timerBarFill.style.width = "100%";
@@ -575,11 +576,10 @@
         } catch (_) {}
     }
 
-    function renderChart(history) {
-        const svg = $("#chart-wpm");
-        const chartCanvas = $(".chart-canvas");
+    function renderLineChart(svgSelector, history, opts) {
+        const svg = $(svgSelector);
+        const chartCanvas = svg.closest(".chart-canvas") || $(".chart-canvas");
 
-        // Remove any existing tooltip
         const oldTooltip = chartCanvas.querySelector(".chart-tooltip");
         if (oldTooltip) oldTooltip.remove();
 
@@ -595,17 +595,15 @@
         const plotW = w - pad.left - pad.right;
         const plotH = h - pad.top - pad.bottom;
 
-        const wpmValues = data.map((d) => d.wpm);
-        const maxWpm = Math.max(...wpmValues, 10);
-        const minWpm = Math.min(...wpmValues, 0);
-        const range = maxWpm - minWpm || 10;
+        const values = data.map((d) => d[opts.dataKey]);
+        const { min: minVal, max: maxVal } = opts.minMax(values);
+        const range = maxVal - minVal || 10;
 
         const xStep = data.length > 1 ? plotW / (data.length - 1) : plotW / 2;
 
-        // Compute point positions
         const points = data.map((d, i) => ({
             x: pad.left + i * xStep,
-            y: pad.top + plotH - ((d.wpm - minWpm) / range) * plotH,
+            y: pad.top + plotH - ((d[opts.dataKey] - minVal) / range) * plotH,
             wpm: d.wpm,
             accuracy: d.accuracy,
             streak: d.streak,
@@ -624,123 +622,7 @@
                 pathD += ` L ${p.x} ${p.y}`;
                 areaD += ` L ${p.x} ${p.y}`;
             }
-            // Visible dot
-            dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#58a6ff" opacity="0.8"/>`;
-            // Larger invisible hit area for hover
-            dots += `<circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" data-point="${i}" class="chart-hit"/>`;
-        });
-        areaD += ` L ${points[points.length - 1].x} ${pad.top + plotH} Z`;
-
-        // Read theme-aware chart colors
-        const styles = getComputedStyle(document.documentElement);
-        const chartLabelColor = styles.getPropertyValue("--chart-label").trim();
-        const chartGridColor = styles.getPropertyValue("--chart-grid").trim();
-        const accentColor = styles.getPropertyValue("--accent").trim();
-
-        // Y axis labels
-        let yLabels = "";
-        for (let i = 0; i <= 4; i++) {
-            const val = Math.round(minWpm + (range / 4) * i);
-            const y = pad.top + plotH - (plotH / 4) * i;
-            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="${chartLabelColor}" font-size="10" font-family="monospace">${val}</text>`;
-            yLabels += `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="${chartGridColor}" stroke-width="1"/>`;
-        }
-
-        svg.innerHTML = `
-            ${yLabels}
-            <path d="${areaD}" fill="url(#area-gradient)" opacity="0.3"/>
-            <path d="${pathD}" fill="none" stroke="${accentColor}" stroke-width="2"/>
-            ${dots}
-            <defs>
-                <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.4"/>
-                    <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
-        `;
-
-        // Create tooltip element
-        const tooltip = document.createElement("div");
-        tooltip.className = "chart-tooltip";
-        chartCanvas.appendChild(tooltip);
-
-        // Bind hover events on hit areas
-        svg.querySelectorAll(".chart-hit").forEach((circle) => {
-            circle.addEventListener("mouseenter", (e) => {
-                const idx = parseInt(circle.dataset.point);
-                const p = points[idx];
-                const dateStr = p.date ? new Date(p.date + "Z").toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-                tooltip.innerHTML = `
-                    <div class="chart-tooltip-wpm">${Math.round(p.wpm)} WPM</div>
-                    <div class="chart-tooltip-acc">${Math.round(p.accuracy)}% accuracy</div>
-                    <div class="chart-tooltip-date">${dateStr}</div>
-                `;
-                // Position relative to chart canvas
-                const canvasRect = chartCanvas.getBoundingClientRect();
-                const svgRect = svg.getBoundingClientRect();
-                let left = svgRect.left - canvasRect.left + p.x - tooltip.offsetWidth / 2;
-                let top = svgRect.top - canvasRect.top + p.y - tooltip.offsetHeight - 12;
-                // Clamp to container
-                left = Math.max(0, Math.min(left, canvasRect.width - tooltip.offsetWidth));
-                if (top < 0) top = svgRect.top - canvasRect.top + p.y + 16;
-                tooltip.style.left = left + "px";
-                tooltip.style.top = top + "px";
-                tooltip.classList.add("visible");
-            });
-            circle.addEventListener("mouseleave", () => {
-                tooltip.classList.remove("visible");
-            });
-        });
-    }
-
-    function renderAccuracyChart(history) {
-        const svg = $("#chart-accuracy");
-        const chartCanvas = svg.closest(".chart-canvas");
-
-        const oldTooltip = chartCanvas.querySelector(".chart-tooltip");
-        if (oldTooltip) oldTooltip.remove();
-
-        if (!history || history.length === 0) {
-            svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#484f58" font-family="monospace" font-size="14">no data yet</text>';
-            return;
-        }
-
-        const data = [...history].reverse();
-        const w = svg.clientWidth || 900;
-        const h = svg.clientHeight || 200;
-        const pad = { top: 20, right: 20, bottom: 30, left: 45 };
-        const plotW = w - pad.left - pad.right;
-        const plotH = h - pad.top - pad.bottom;
-
-        const accValues = data.map((d) => d.accuracy);
-        const maxAcc = Math.min(Math.max(...accValues, 10) + 2, 100);
-        const minAcc = Math.max(Math.min(...accValues) - 5, 0);
-        const range = maxAcc - minAcc || 10;
-
-        const xStep = data.length > 1 ? plotW / (data.length - 1) : plotW / 2;
-
-        const points = data.map((d, i) => ({
-            x: pad.left + i * xStep,
-            y: pad.top + plotH - ((d.accuracy - minAcc) / range) * plotH,
-            wpm: d.wpm,
-            accuracy: d.accuracy,
-            streak: d.streak,
-            date: d.created_at,
-        }));
-
-        let pathD = "";
-        let areaD = "";
-        let dots = "";
-
-        points.forEach((p, i) => {
-            if (i === 0) {
-                pathD += `M ${p.x} ${p.y}`;
-                areaD += `M ${p.x} ${pad.top + plotH} L ${p.x} ${p.y}`;
-            } else {
-                pathD += ` L ${p.x} ${p.y}`;
-                areaD += ` L ${p.x} ${p.y}`;
-            }
-            dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#3fb950" opacity="0.8"/>`;
+            dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${opts.dotColor}" opacity="0.8"/>`;
             dots += `<circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" data-point="${i}" class="chart-hit"/>`;
         });
         areaD += ` L ${points[points.length - 1].x} ${pad.top + plotH} Z`;
@@ -748,25 +630,25 @@
         const styles = getComputedStyle(document.documentElement);
         const chartLabelColor = styles.getPropertyValue("--chart-label").trim();
         const chartGridColor = styles.getPropertyValue("--chart-grid").trim();
-        const greenColor = styles.getPropertyValue("--green").trim() || "#3fb950";
+        const strokeColor = opts.colorVar ? (styles.getPropertyValue(opts.colorVar).trim() || opts.dotColor) : opts.dotColor;
 
         let yLabels = "";
         for (let i = 0; i <= 4; i++) {
-            const val = Math.round(minAcc + (range / 4) * i);
+            const val = Math.round(minVal + (range / 4) * i);
             const y = pad.top + plotH - (plotH / 4) * i;
-            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="${chartLabelColor}" font-size="10" font-family="monospace">${val}%</text>`;
+            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="${chartLabelColor}" font-size="10" font-family="monospace">${val}${opts.yLabelSuffix}</text>`;
             yLabels += `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="${chartGridColor}" stroke-width="1"/>`;
         }
 
         svg.innerHTML = `
             ${yLabels}
-            <path d="${areaD}" fill="url(#acc-area-gradient)" opacity="0.3"/>
-            <path d="${pathD}" fill="none" stroke="${greenColor}" stroke-width="2"/>
+            <path d="${areaD}" fill="url(#${opts.gradientId})" opacity="0.3"/>
+            <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="2"/>
             ${dots}
             <defs>
-                <linearGradient id="acc-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="${greenColor}" stop-opacity="0.4"/>
-                    <stop offset="100%" stop-color="${greenColor}" stop-opacity="0"/>
+                <linearGradient id="${opts.gradientId}" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0"/>
                 </linearGradient>
             </defs>
         `;
@@ -780,11 +662,7 @@
                 const idx = parseInt(circle.dataset.point);
                 const p = points[idx];
                 const dateStr = p.date ? new Date(p.date + "Z").toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-                tooltip.innerHTML = `
-                    <div class="chart-tooltip-wpm">${Math.round(p.accuracy)}% accuracy</div>
-                    <div class="chart-tooltip-acc">${Math.round(p.wpm)} WPM</div>
-                    <div class="chart-tooltip-date">${dateStr}</div>
-                `;
+                tooltip.innerHTML = opts.tooltipHtml(p, dateStr);
                 const canvasRect = chartCanvas.getBoundingClientRect();
                 const svgRect = svg.getBoundingClientRect();
                 let left = svgRect.left - canvasRect.left + p.x - tooltip.offsetWidth / 2;
@@ -798,6 +676,44 @@
             circle.addEventListener("mouseleave", () => {
                 tooltip.classList.remove("visible");
             });
+        });
+    }
+
+    function renderChart(history) {
+        renderLineChart("#chart-wpm", history, {
+            dataKey: "wpm",
+            dotColor: "#58a6ff",
+            colorVar: "--accent",
+            gradientId: "area-gradient",
+            yLabelSuffix: "",
+            minMax: (values) => ({
+                min: Math.min(...values, 0),
+                max: Math.max(...values, 10),
+            }),
+            tooltipHtml: (p, dateStr) => `
+                <div class="chart-tooltip-wpm">${Math.round(p.wpm)} WPM</div>
+                <div class="chart-tooltip-acc">${Math.round(p.accuracy)}% accuracy</div>
+                <div class="chart-tooltip-date">${dateStr}</div>
+            `,
+        });
+    }
+
+    function renderAccuracyChart(history) {
+        renderLineChart("#chart-accuracy", history, {
+            dataKey: "accuracy",
+            dotColor: "#3fb950",
+            colorVar: "--green",
+            gradientId: "acc-area-gradient",
+            yLabelSuffix: "%",
+            minMax: (values) => ({
+                min: Math.max(Math.min(...values) - 5, 0),
+                max: Math.min(Math.max(...values, 10) + 2, 100),
+            }),
+            tooltipHtml: (p, dateStr) => `
+                <div class="chart-tooltip-wpm">${Math.round(p.accuracy)}% accuracy</div>
+                <div class="chart-tooltip-acc">${Math.round(p.wpm)} WPM</div>
+                <div class="chart-tooltip-date">${dateStr}</div>
+            `,
         });
     }
 
@@ -974,29 +890,7 @@
     }
 
     function renderLessonText() {
-        const words = lesson.text.split(" ");
-        let html = "";
-        let charIdx = 0;
-        words.forEach((word, wi) => {
-            html += '<span class="word">';
-            for (let j = 0; j < word.length; j++) {
-                const c = escapeHtml(word[j]);
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">${c}</span>`;
-                charIdx++;
-            }
-            html += '</span>';
-            if (wi < words.length - 1) {
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">&nbsp;</span>`;
-                charIdx++;
-            }
-        });
-        lessonTextDisplay.innerHTML = html;
-        lessonHiddenInput.value = "";
-        lessonTextDisplay.style.transform = "translateY(0)";
-        lessonClickHint.style.display = "";
-        lessonClickHint.style.opacity = "1";
+        renderTextToDisplay(lesson.text, lessonTextDisplay, lessonHiddenInput, lessonClickHint);
         updateLessonLiveStats();
     }
 
@@ -1251,29 +1145,7 @@
     }
 
     function renderWeakText() {
-        const words = weak.text.split(" ");
-        let html = "";
-        let charIdx = 0;
-        words.forEach((word, wi) => {
-            html += '<span class="word">';
-            for (let j = 0; j < word.length; j++) {
-                const c = escapeHtml(word[j]);
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">${c}</span>`;
-                charIdx++;
-            }
-            html += '</span>';
-            if (wi < words.length - 1) {
-                const cls = charIdx === 0 ? "char current" : "char upcoming";
-                html += `<span class="${cls}" data-index="${charIdx}">&nbsp;</span>`;
-                charIdx++;
-            }
-        });
-        weakTextDisplay.innerHTML = html;
-        weakHiddenInput.value = "";
-        weakTextDisplay.style.transform = "translateY(0)";
-        weakClickHint.style.display = "";
-        weakClickHint.style.opacity = "1";
+        renderTextToDisplay(weak.text, weakTextDisplay, weakHiddenInput, weakClickHint);
         updateWeakLiveStats();
         weakTimerBarFill.style.width = "100%";
         weakTimerBarFill.className = "timer-bar-fill";
