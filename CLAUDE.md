@@ -61,7 +61,8 @@ pytest -v             # Run tests
 ## Key design decisions
 
 - Static data (words, lessons, passages, code snippets) lives in `data/` module, keeping `app.py` focused on routes and logic
-- Test modes: words, passage, code (real code snippets), sudden_death (one mistake = game over), custom (user-pasted text)
+- Test tab modes: words, passage. Games tab modes: sudden_death (one mistake = game over), code (real code snippets), custom (user-pasted text)
+- Games tab follows the learn tab pattern: browser view with cards → active game view with typing container → results overlay
 - All data (test results, lesson progress, character errors) is stored in SQLite locally — no auth, no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
 - Weak keys practice generates words weighted toward the user's most-missed characters from the last 5 tests (scoped via `result_id` FK on `char_errors`)

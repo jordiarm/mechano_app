@@ -768,6 +768,54 @@ body.no-scanlines::after {
     white-space: nowrap;
 }
 
+/* ===== GAME CARDS ===== */
+.game-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.game-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.game-card:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent);
+}
+
+.game-card-icon {
+    font-size: 1.4rem;
+    min-width: 36px;
+    text-align: center;
+    color: var(--accent);
+}
+
+.game-card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.game-card-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.game-time-bar {
+    margin-bottom: 16px;
+}
+
 /* ===== CUSTOM TEXT ===== */
 .custom-text-input {
     width: 100%;

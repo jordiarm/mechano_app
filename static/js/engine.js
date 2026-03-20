@@ -198,6 +198,18 @@
     const customOverlay = $("#custom-text-overlay");
     const customTextInput = $("#custom-text-input");
 
+    // --- Game DOM refs ---
+    const gameBrowser = $("#game-browser");
+    const gameActiveEl = $("#game-active");
+    const gameTextDisplay = $("#game-text-display");
+    const gameHiddenInput = $("#game-hidden-input");
+    const gameTypingContainer = $("#game-typing-container");
+    const gameClickHint = $("#game-click-hint");
+    const gameTimerBarFill = $("#game-timer-bar-fill");
+    const gameTimerText = $("#game-timer-text");
+    const gameResultsOverlay = $("#game-results-overlay");
+    const gameTimeBar = $("#game-time-bar");
+
     // --- Char error buffer (sent to backend on finish) ---
     let charErrorBuffer = [];
 
@@ -278,16 +290,10 @@
     }
 
     async function loadText() {
-        if (state.mode === "words" || state.mode === "sudden_death") {
+        if (state.mode === "words") {
             const res = await fetch("/api/words?count=250");
             const data = await res.json();
             state.text = data.words;
-        } else if (state.mode === "code") {
-            // Text set via showCodeSelector -> loadCodeSnippet
-            return;
-        } else if (state.mode === "custom") {
-            // Text set via custom text overlay
-            return;
         }
         renderText();
     }
@@ -337,9 +343,8 @@
     async function loadCodeSnippet(index) {
         const res = await fetch(`/api/code-snippet?index=${index}`);
         const data = await res.json();
-        state.text = data.text;
+        startGameWithText("code", data.title, data.text);
         codeOverlay.classList.remove("active");
-        renderText();
     }
 
     function showCustomTextOverlay() {
@@ -351,10 +356,8 @@
     function startCustomText() {
         const text = customTextInput.value.trim();
         if (!text) return;
-        // Normalize whitespace: collapse runs of whitespace into single spaces
-        state.text = text.replace(/\s+/g, " ");
+        startGameWithText("custom", "Custom Text", text.replace(/\s+/g, " "));
         customOverlay.classList.remove("active");
-        renderText();
     }
 
     function renderTextToDisplay(text, displayEl, inputEl, hintEl) {
@@ -461,14 +464,6 @@
             typingContainer.classList.add("error-flash");
             if (settings.screenShake) typingContainer.classList.add("screen-shake");
             setTimeout(() => typingContainer.classList.remove("error-flash", "screen-shake"), 150);
-
-            // Sudden death: one mistake = game over
-            if (state.mode === "sudden_death") {
-                state.currentIndex++;
-                updateLiveStats();
-                finishTest();
-                return;
-            }
         }
 
         state.currentIndex++;
@@ -1365,6 +1360,258 @@
         loadWeakKeysPreview();
     }
 
+    // ===== GAME SYSTEM =====
+
+    let game = {
+        active: false,
+        mode: null,
+        text: "",
+        chars: [],
+        currentIndex: 0,
+        errors: 0,
+        correctChars: 0,
+        totalTyped: 0,
+        streak: 0,
+        bestStreak: 0,
+        started: false,
+        finished: false,
+        startTime: null,
+        timerInterval: null,
+        duration: 60,
+        timeLeft: 60,
+    };
+
+    function startGameWithText(mode, title, text) {
+        game.active = true;
+        game.mode = mode;
+        game.text = text;
+        game.chars = text.split("");
+        game.currentIndex = 0;
+        game.errors = 0;
+        game.correctChars = 0;
+        game.totalTyped = 0;
+        game.streak = 0;
+        game.bestStreak = 0;
+        game.started = false;
+        game.finished = false;
+        game.startTime = null;
+        clearInterval(game.timerInterval);
+        game.timeLeft = game.duration;
+
+        // Show time bar only for sudden death (timed game)
+        gameTimeBar.style.display = mode === "sudden_death" ? "" : "none";
+
+        $("#game-active-title").textContent = title;
+        renderGameText();
+
+        gameBrowser.style.display = "none";
+        gameActiveEl.style.display = "block";
+        gameHiddenInput.focus();
+    }
+
+    async function startSuddenDeath() {
+        const res = await fetch("/api/words?count=250");
+        const data = await res.json();
+        startGameWithText("sudden_death", "Sudden Death", data.words);
+    }
+
+    function renderGameText() {
+        renderTextToDisplay(game.text, gameTextDisplay, gameHiddenInput, gameClickHint);
+        updateGameLiveStats();
+        gameTimerBarFill.style.width = "100%";
+        gameTimerBarFill.className = "timer-bar-fill";
+        gameTimerText.className = "timer-text";
+        gameTimerText.textContent = game.timeLeft;
+    }
+
+    function handleGameInput() {
+        if (game.finished) return;
+
+        const inputVal = gameHiddenInput.value;
+        if (inputVal.length === 0) return;
+
+        const typedChar = inputVal[inputVal.length - 1];
+        gameHiddenInput.value = "";
+
+        if (!game.started) {
+            game.started = true;
+            game.startTime = Date.now();
+            gameClickHint.style.display = "none";
+            if (game.mode === "sudden_death") startGameTimer();
+        }
+
+        const expected = game.chars[game.currentIndex];
+        const charSpan = gameTextDisplay.querySelector(`[data-index="${game.currentIndex}"]`);
+        const rect = charSpan ? charSpan.getBoundingClientRect() : null;
+
+        game.totalTyped++;
+
+        if (typedChar === expected) {
+            charSpan.classList.remove("current", "upcoming");
+            charSpan.classList.add("correct");
+            game.correctChars++;
+            game.streak++;
+            if (game.streak > game.bestStreak) game.bestStreak = game.streak;
+
+            playKeySound();
+            if (rect) spawnParticle(typedChar, rect.left + rect.width / 2, rect.top, true);
+
+            if (game.streak > 0 && game.streak % 10 === 0) {
+                playComboSound();
+                if (rect) spawnComboFlash(game.streak, rect.left, rect.top);
+            }
+        } else {
+            charSpan.classList.remove("current", "upcoming");
+            charSpan.classList.add("incorrect");
+            game.errors++;
+            game.streak = 0;
+            recordCharError(expected, typedChar);
+
+            playErrorSound();
+            if (rect) spawnParticle(typedChar, rect.left + rect.width / 2, rect.top, false);
+            gameTypingContainer.classList.add("error-flash");
+            if (settings.screenShake) gameTypingContainer.classList.add("screen-shake");
+            setTimeout(() => gameTypingContainer.classList.remove("error-flash", "screen-shake"), 150);
+
+            // Sudden death: one mistake = game over
+            if (game.mode === "sudden_death") {
+                game.currentIndex++;
+                updateGameLiveStats();
+                finishGame();
+                return;
+            }
+        }
+
+        game.currentIndex++;
+
+        if (game.currentIndex < game.chars.length) {
+            const next = gameTextDisplay.querySelector(`[data-index="${game.currentIndex}"]`);
+            if (next) {
+                next.classList.remove("upcoming");
+                next.classList.add("current");
+                const lineHeight = parseFloat(getComputedStyle(gameTextDisplay).lineHeight);
+                const firstCharTop = gameTextDisplay.querySelector('[data-index="0"]')?.offsetTop || 0;
+                const currentTop = next.offsetTop;
+                const linesScrolled = Math.floor((currentTop - firstCharTop) / lineHeight);
+                if (linesScrolled > 0) {
+                    gameTextDisplay.style.transform = `translateY(-${linesScrolled * lineHeight}px)`;
+                }
+            }
+        } else {
+            finishGame();
+        }
+
+        updateGameLiveStats();
+    }
+
+    function startGameTimer() {
+        game.timerInterval = setInterval(() => {
+            game.timeLeft--;
+            gameTimerText.textContent = game.timeLeft;
+
+            const pct = (game.timeLeft / game.duration) * 100;
+            gameTimerBarFill.style.width = pct + "%";
+
+            if (pct <= 20) {
+                gameTimerBarFill.className = "timer-bar-fill danger";
+                gameTimerText.className = "timer-text danger";
+            } else if (pct <= 40) {
+                gameTimerBarFill.className = "timer-bar-fill warning";
+                gameTimerText.className = "timer-text warning";
+            }
+
+            if (game.timeLeft <= 0) finishGame();
+        }, 1000);
+    }
+
+    function calcGameWpm() {
+        if (!game.startTime) return 0;
+        const elapsed = (Date.now() - game.startTime) / 1000 / 60;
+        if (elapsed === 0) return 0;
+        return Math.round((game.correctChars / 5) / elapsed);
+    }
+
+    function calcGameAccuracy() {
+        if (game.totalTyped === 0) return 100;
+        return Math.round((game.correctChars / game.totalTyped) * 100);
+    }
+
+    function updateGameLiveStats() {
+        $("#game-live-wpm").textContent = calcGameWpm();
+        $("#game-live-accuracy").textContent = calcGameAccuracy();
+        $("#game-live-errors").textContent = game.errors;
+        $("#game-live-streak").textContent = game.streak;
+    }
+
+    async function finishGame() {
+        if (game.finished) return;
+        game.finished = true;
+        clearInterval(game.timerInterval);
+        gameHiddenInput.blur();
+
+        const wpm = calcGameWpm();
+        const accuracy = calcGameAccuracy();
+
+        playFinishSound();
+
+        // Show results
+        const titleEl = $("#game-results-title");
+        if (game.mode === "sudden_death" && game.errors > 0) {
+            titleEl.textContent = "Dead!";
+        } else {
+            titleEl.textContent = "Game Complete";
+        }
+        $("#game-result-wpm").textContent = wpm;
+        $("#game-result-accuracy").textContent = accuracy;
+        $("#game-result-errors").textContent = game.errors;
+        $("#game-result-streak").textContent = game.bestStreak;
+
+        gameResultsOverlay.classList.add("active");
+
+        // Save to backend
+        let resultId = null;
+        try {
+            const res = await fetch("/api/results", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    wpm: wpm,
+                    accuracy: accuracy,
+                    errors: game.errors,
+                    total_chars: game.totalTyped,
+                    correct_chars: game.correctChars,
+                    streak: game.bestStreak,
+                    duration: game.mode === "sudden_death" ? game.duration : 0,
+                    mode: game.mode,
+                }),
+            });
+            const resData = await res.json();
+            resultId = resData.id;
+        } catch (_) {}
+
+        await flushCharErrors(resultId);
+    }
+
+    function retryGame() {
+        gameResultsOverlay.classList.remove("active");
+        if (game.mode === "sudden_death") {
+            startSuddenDeath();
+        } else if (game.mode === "code") {
+            showCodeSelector();
+        } else if (game.mode === "custom") {
+            showCustomTextOverlay();
+        }
+    }
+
+    function exitGame() {
+        game.active = false;
+        game.finished = false;
+        clearInterval(game.timerInterval);
+        gameResultsOverlay.classList.remove("active");
+        gameActiveEl.style.display = "none";
+        gameBrowser.style.display = "block";
+    }
+
     // --- Events ---
     function bindEvents() {
         // Hidden input
@@ -1373,12 +1620,19 @@
         // Focus on container click
         typingContainer.addEventListener("click", () => hiddenInput.focus());
 
-        // Focus on any keypress when test/lesson view active
+        // Focus on any keypress when test/lesson/game view active
         document.addEventListener("keydown", (e) => {
             // Lesson results overlay
             if (lesson.finished && lessonResultsOverlay.classList.contains("active")) {
                 if (e.key === "Enter") { e.preventDefault(); retryLesson(); }
                 if (e.key === "Escape") { exitLesson(); }
+                return;
+            }
+
+            // Game results overlay
+            if (gameResultsOverlay.classList.contains("active")) {
+                if (e.key === "Enter") { e.preventDefault(); retryGame(); }
+                if (e.key === "Escape") { exitGame(); }
                 return;
             }
 
@@ -1418,6 +1672,13 @@
                 return;
             }
 
+            // Game active: focus input
+            if ($("#view-games").classList.contains("active") && game.active && !game.finished) {
+                if (e.target.closest(".lesson-active-header")) return;
+                gameHiddenInput.focus();
+                return;
+            }
+
             // Weak practice active: focus input
             if ($("#view-learn").classList.contains("active") && weak.active && !weak.finished) {
                 if (e.target.closest(".lesson-active-header")) return;
@@ -1448,10 +1709,6 @@
                 state.mode = btn.dataset.mode;
                 if (state.mode === "passage") {
                     showPassageSelector();
-                } else if (state.mode === "code") {
-                    showCodeSelector();
-                } else if (state.mode === "custom") {
-                    showCustomTextOverlay();
                 } else {
                     restart();
                 }
@@ -1503,6 +1760,35 @@
         // Custom text events
         $("#btn-custom-start").addEventListener("click", startCustomText);
         $("#btn-custom-cancel").addEventListener("click", () => customOverlay.classList.remove("active"));
+
+        // --- Game events ---
+        gameHiddenInput.addEventListener("input", handleGameInput);
+        gameTypingContainer.addEventListener("click", () => gameHiddenInput.focus());
+        $("#btn-game-back").addEventListener("click", exitGame);
+        $("#btn-game-retry").addEventListener("click", retryGame);
+        $("#btn-game-browse").addEventListener("click", exitGame);
+
+        // Game card clicks
+        $$("[data-game]").forEach((card) => {
+            card.addEventListener("click", () => {
+                const mode = card.dataset.game;
+                if (mode === "sudden_death") startSuddenDeath();
+                else if (mode === "code") showCodeSelector();
+                else if (mode === "custom") showCustomTextOverlay();
+            });
+        });
+
+        // Game time buttons
+        $$("[data-game-time]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-game-time]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                game.duration = parseInt(btn.dataset.gameTime);
+                game.timeLeft = game.duration;
+                // Restart sudden death with new duration
+                if (game.active && game.mode === "sudden_death") startSuddenDeath();
+            });
+        });
 
         // --- Weak keys events ---
         weakHiddenInput.addEventListener("input", handleWeakInput);
