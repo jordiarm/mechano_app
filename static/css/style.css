@@ -27,6 +27,8 @@
     --purple: #bc8cff;
     --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", "Cascadia Code", "Consolas", monospace;
     --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --chart-label: #484f58;
+    --chart-grid: #21262d;
     --radius: 8px;
     --transition: 150ms ease;
 }
@@ -50,6 +52,8 @@
     --yellow: #9a6700;
     --yellow-dim: #9a67001a;
     --purple: #8250df;
+    --chart-label: #8b949e;
+    --chart-grid: #e9ecef;
 }
 
 body {

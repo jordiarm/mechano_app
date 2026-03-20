@@ -627,24 +627,30 @@
         });
         areaD += ` L ${points[points.length - 1].x} ${pad.top + plotH} Z`;
 
+        // Read theme-aware chart colors
+        const styles = getComputedStyle(document.documentElement);
+        const chartLabelColor = styles.getPropertyValue("--chart-label").trim();
+        const chartGridColor = styles.getPropertyValue("--chart-grid").trim();
+        const accentColor = styles.getPropertyValue("--accent").trim();
+
         // Y axis labels
         let yLabels = "";
         for (let i = 0; i <= 4; i++) {
             const val = Math.round(minWpm + (range / 4) * i);
             const y = pad.top + plotH - (plotH / 4) * i;
-            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="#484f58" font-size="10" font-family="monospace">${val}</text>`;
-            yLabels += `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="#21262d" stroke-width="1"/>`;
+            yLabels += `<text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="${chartLabelColor}" font-size="10" font-family="monospace">${val}</text>`;
+            yLabels += `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="${chartGridColor}" stroke-width="1"/>`;
         }
 
         svg.innerHTML = `
             ${yLabels}
             <path d="${areaD}" fill="url(#area-gradient)" opacity="0.3"/>
-            <path d="${pathD}" fill="none" stroke="#58a6ff" stroke-width="2"/>
+            <path d="${pathD}" fill="none" stroke="${accentColor}" stroke-width="2"/>
             ${dots}
             <defs>
                 <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#58a6ff" stop-opacity="0.4"/>
-                    <stop offset="100%" stop-color="#58a6ff" stop-opacity="0"/>
+                    <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
                 </linearGradient>
             </defs>
         `;
