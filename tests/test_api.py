@@ -72,7 +72,10 @@ class TestResults:
             content_type="application/json",
         )
         assert resp.status_code == 200
-        assert resp.get_json()["status"] == "ok"
+        data = resp.get_json()
+        assert data["status"] == "ok"
+        assert "id" in data
+        assert isinstance(data["id"], int)
 
     def test_get_results_empty(self, client):
         resp = client.get("/api/results")
@@ -260,14 +263,33 @@ class TestLessons:
 
 class TestCharErrors:
     def test_save_char_errors(self, client):
+        # First create a result to link errors to
+        res = client.post(
+            "/api/results",
+            data=json.dumps(
+                {
+                    "wpm": 60.0,
+                    "accuracy": 95.0,
+                    "errors": 2,
+                    "total_chars": 100,
+                    "correct_chars": 98,
+                    "streak": 10,
+                    "duration": 60,
+                    "mode": "words",
+                }
+            ),
+            content_type="application/json",
+        )
+        result_id = res.get_json()["id"]
         resp = client.post(
             "/api/char-errors",
             data=json.dumps(
                 {
+                    "result_id": result_id,
                     "errors": [
                         {"expected": "t", "typed": "r"},
                         {"expected": "e", "typed": "w"},
-                    ]
+                    ],
                 }
             ),
             content_type="application/json",
