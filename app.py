@@ -547,7 +547,11 @@ def get_weak_keys_practice():
             top_words.extend([ch * 3, ch + "a", "a" + ch, ch + "e", "e" + ch])
 
     count = min(50, max(30, len(top_words)))
-    selected = [random.choice(top_words) for _ in range(count)]
+    if len(top_words) >= count:
+        selected = random.sample(top_words, count)
+    else:
+        selected = top_words[:]
+        random.shuffle(selected)
     return jsonify(
         {
             "text": " ".join(selected),
