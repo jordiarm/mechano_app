@@ -3,6 +3,16 @@
 (function () {
     "use strict";
 
+    // --- Auth-aware fetch wrapper ---
+    async function apiFetch(url, opts) {
+        const res = await fetch(url, opts);
+        if (res.status === 401) {
+            window.location.href = "/login";
+            throw new Error("unauthorized");
+        }
+        return res;
+    }
+
     // --- Animated counter for result values ---
     function animateCounter(el, target, duration = 600) {
         const start = performance.now();
@@ -236,7 +246,7 @@
         if (charErrorBuffer.length === 0) return;
         const errors = charErrorBuffer.splice(0);
         try {
-            await fetch("/api/char-errors", {
+            await apiFetch("/api/char-errors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ errors, result_id: resultId }),
@@ -297,7 +307,7 @@
 
     async function loadPreviousBests() {
         try {
-            const res = await fetch("/api/stats");
+            const res = await apiFetch("/api/stats");
             const data = await res.json();
             state.previousBestWpm = data.best_wpm || 0;
             state.previousBestStreak = data.best_streak || 0;
@@ -306,7 +316,7 @@
 
     async function loadText() {
         if (state.mode === "words") {
-            const res = await fetch("/api/words?count=250");
+            const res = await apiFetch("/api/words?count=250");
             const data = await res.json();
             state.text = data.words;
         }
@@ -314,7 +324,7 @@
     }
 
     async function loadPassage(index) {
-        const res = await fetch(`/api/passage?index=${index}`);
+        const res = await apiFetch(`/api/passage?index=${index}`);
         const data = await res.json();
         state.text = data.text;
         renderText();
@@ -322,7 +332,7 @@
     }
 
     async function showPassageSelector() {
-        const res = await fetch("/api/passages");
+        const res = await apiFetch("/api/passages");
         const data = await res.json();
         passageList.innerHTML = "";
         data.passages.forEach((p, i) => {
@@ -339,7 +349,7 @@
     }
 
     async function showCodeSelector() {
-        const res = await fetch("/api/code-snippets");
+        const res = await apiFetch("/api/code-snippets");
         const data = await res.json();
         codeSnippetList.innerHTML = "";
         data.snippets.forEach((s, i) => {
@@ -356,7 +366,7 @@
     }
 
     async function loadCodeSnippet(index) {
-        const res = await fetch(`/api/code-snippet?index=${index}`);
+        const res = await apiFetch(`/api/code-snippet?index=${index}`);
         const data = await res.json();
         startGameWithText("code", data.title, data.text);
         codeOverlay.classList.remove("active");
@@ -632,7 +642,7 @@
         // Save to backend
         let resultId = null;
         try {
-            const res = await fetch("/api/results", {
+            const res = await apiFetch("/api/results", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -665,6 +675,63 @@
     let statsDuration = 60;
     let statsMode = null;
 
+    // --- Leaderboard View ---
+    let lbDuration = 60;
+    let lbMode = null;
+
+    function buildLbQuery() {
+        const params = [];
+        if (lbDuration) params.push(`duration=${lbDuration}`);
+        if (lbMode) params.push(`mode=${lbMode}`);
+        return params.length > 0 ? "?" + params.join("&") : "";
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const query = buildLbQuery();
+            const res = await apiFetch(`/api/leaderboard${query}`);
+            const data = await res.json();
+            renderLeaderboard(data.leaderboard, data.current_user);
+        } catch (_) {}
+    }
+
+    function renderLeaderboard(entries, currentUser) {
+        const tbody = $("#leaderboard-body");
+        const empty = $("#leaderboard-empty");
+
+        if (!entries || entries.length === 0) {
+            tbody.innerHTML = "";
+            empty.style.display = "block";
+            return;
+        }
+
+        const rankLabel = (i) => ["1st", "2nd", "3rd"][i] || `${i + 1}th`;
+        const rankColor = (i) => [
+            "var(--neon-yellow)",
+            "var(--text-secondary)",
+            "var(--neon-orange)",
+        ][i] || "var(--text-muted)";
+
+        empty.style.display = "none";
+        tbody.innerHTML = entries
+            .map((e, i) => {
+                const isYou = e.username === currentUser;
+                const youTag = isYou
+                    ? ' <span style="color:var(--text-muted);font-size:0.7rem">(you)</span>'
+                    : "";
+                return `
+                <tr class="${isYou ? "leaderboard-you" : ""}">
+                    <td style="color: ${rankColor(i)}">${rankLabel(i)}</td>
+                    <td style="color: ${isYou ? "var(--accent)" : "var(--text-primary)"};font-weight:${isYou ? "600" : "400"}">${e.username}${youTag}</td>
+                    <td style="color: var(--neon-cyan)">${Math.round(e.best_wpm)}</td>
+                    <td style="color: var(--accent)">${Math.round(e.avg_wpm)}</td>
+                    <td style="color: var(--green)">${Math.round(e.avg_accuracy)}%</td>
+                    <td style="color: var(--text-muted)">${e.total_tests}</td>
+                </tr>`;
+            })
+            .join("");
+    }
+
     function buildStatsQuery() {
         const params = [];
         if (statsDuration) params.push(`duration=${statsDuration}`);
@@ -675,7 +742,7 @@
     async function loadStats() {
         try {
             const query = buildStatsQuery();
-            const res = await fetch(`/api/stats${query}`);
+            const res = await apiFetch(`/api/stats${query}`);
             const data = await res.json();
 
             $("#stat-best-kps").textContent = data.best_kps.toFixed(1);
@@ -690,7 +757,7 @@
             renderAccuracyChart(data.history);
 
             // History table
-            const res2 = await fetch(`/api/results?limit=20${query ? "&" + query.slice(1) : ""}`);
+            const res2 = await apiFetch(`/api/results?limit=20${query ? "&" + query.slice(1) : ""}`);
             const data2 = await res2.json();
             renderHistory(data2.results);
         } catch (_) {}
@@ -876,7 +943,7 @@
 
     async function loadLessons() {
         try {
-            const res = await fetch("/api/lessons");
+            const res = await apiFetch("/api/lessons");
             const data = await res.json();
             lesson.levelsData = data.levels;
             renderLessonBrowser(data.levels);
@@ -964,7 +1031,7 @@
 
     async function startLesson(lessonId) {
         try {
-            const res = await fetch(`/api/lesson/${lessonId}`);
+            const res = await apiFetch(`/api/lesson/${lessonId}`);
             const data = await res.json();
 
             lesson.active = true;
@@ -1142,7 +1209,7 @@
 
         // Save result
         try {
-            await fetch(`/api/lesson/${lesson.id}/result`, {
+            await apiFetch(`/api/lesson/${lesson.id}/result`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1212,7 +1279,7 @@
 
     async function loadWeakKeysPreview() {
         try {
-            const res = await fetch("/api/weak-keys");
+            const res = await apiFetch("/api/weak-keys");
             const data = await res.json();
             if (data.weak_keys.length === 0) {
                 weakSection.style.display = "none";
@@ -1230,7 +1297,7 @@
 
     async function startWeakPractice() {
         try {
-            const res = await fetch("/api/weak-keys/practice");
+            const res = await apiFetch("/api/weak-keys/practice");
             const data = await res.json();
             if (!data.has_data) return;
 
@@ -1466,7 +1533,7 @@
     }
 
     async function startSuddenDeath() {
-        const res = await fetch("/api/words?count=250");
+        const res = await apiFetch("/api/words?count=250");
         const data = await res.json();
         startGameWithText("sudden_death", "Sudden Death", data.words);
     }
@@ -1627,7 +1694,7 @@
         // Save to backend
         let resultId = null;
         try {
-            const res = await fetch("/api/results", {
+            const res = await apiFetch("/api/results", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1880,6 +1947,26 @@
             });
         });
 
+        // Leaderboard mode filter
+        $$("[data-lb-mode]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-lb-mode]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                lbMode = btn.dataset.lbMode === "all" ? null : btn.dataset.lbMode;
+                loadLeaderboard();
+            });
+        });
+
+        // Leaderboard duration filter
+        $$("[data-lb-duration]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                $$("[data-lb-duration]").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                lbDuration = btn.dataset.lbDuration === "all" ? null : parseInt(btn.dataset.lbDuration);
+                loadLeaderboard();
+            });
+        });
+
         // Nav tabs
         $$(".nav-tab").forEach((tab) => {
             tab.addEventListener("click", () => {
@@ -1889,6 +1976,7 @@
                 $(`#view-${tab.dataset.view}`).classList.add("active");
 
                 if (tab.dataset.view === "stats") loadStats();
+                if (tab.dataset.view === "leaderboard") loadLeaderboard();
                 if (tab.dataset.view === "learn") { loadWeakKeysPreview(); loadLessons(); }
             });
         });

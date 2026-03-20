@@ -16,7 +16,7 @@ Typing speed tracker and training app built with Flask.
 ## Project structure
 
 ```
-app.py                        # Flask app, API routes, SQLite setup, helpers
+app.py                        # Flask app, API routes, auth, SQLite setup, helpers
 data/                         # Static data constants (extracted from app.py)
   __init__.py                 # Re-exports all data constants
   words.py                    # WORD_POOL — English + programming word list
@@ -25,11 +25,12 @@ data/                         # Static data constants (extracted from app.py)
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
-templates/index.html          # Single-page app (test, learn, stats views)
+templates/auth.html           # Login and registration page
+templates/index.html          # Single-page app (test, learn, stats, leaderboard views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (42 tests)
+tests/test_api.py             # API route tests (61 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -39,6 +40,7 @@ tests/test_api.py             # API route tests (42 tests)
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+export SECRET_KEY="your-secret-key"  # optional, defaults to dev key
 python app.py
 # Open http://localhost:5555
 ```
@@ -63,7 +65,8 @@ pytest -v             # Run tests
 - Static data (words, lessons, passages, code snippets) lives in `data/` module, keeping `app.py` focused on routes and logic
 - Test tab modes: words, passage. Games tab modes: sudden_death (one mistake = game over), code (real code snippets), custom (user-pasted text)
 - Games tab follows the learn tab pattern: browser view with cards → active game view with typing container → results overlay
-- All data (test results, lesson progress, character errors) is stored in SQLite locally — no auth, no remote backend
+- User authentication via Flask sessions and werkzeug password hashing; all data is scoped per user via `user_id` FK columns
+- All data (test results, lesson progress, character errors) is stored in SQLite locally — no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
 - Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`)
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
@@ -71,15 +74,17 @@ pytest -v             # Run tests
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
 - Stats overview cards and charts are scoped to the last 60 tests (not all-time); `/api/stats` aggregates via a subquery with `LIMIT 60`
 - Stats cards: avg WPM, best WPM, avg accuracy, avg keys/sec, best keys/sec, best streak; `avg_kps` and `best_kps` are computed as `total_chars / duration`
+- Leaderboard view (`/api/leaderboard`) ranks all users by best WPM (GROUP BY user, ORDER BY MAX(wpm) DESC, LIMIT 100); supports the same `?duration=` and `?mode=` filters as stats; returns `current_user` so the client can highlight the logged-in user's row; top 3 rows styled gold/silver/bronze
 - `WORD_POOL` is deduplicated; lesson lookups use pre-built dicts (`_LESSON_BY_ID`, `_ALL_LESSON_IDS`) for O(1) access
 - `char_errors` bulk insert uses `executemany`; `get_results`/`get_stats` use parameterized WHERE clauses instead of duplicated SQL branches
 - `engine.js` shares a `renderTextToDisplay()` helper across test/lesson/weak-keys modes, and a `renderLineChart()` helper for both WPM and accuracy charts
 
 ## Database tables
 
-- `results` — test results (WPM, accuracy, errors, streak, duration, mode)
-- `lesson_progress` — per-lesson attempts with pass/fail
-- `char_errors` — every individual character miss (result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 10 results
+- `users` — registered accounts (username, password_hash); all other tables reference `users(id)` via `user_id` FK
+- `results` — test results (user_id, WPM, accuracy, errors, streak, duration, mode)
+- `lesson_progress` — per-lesson attempts with pass/fail (user_id scoped)
+- `char_errors` — every individual character miss (user_id, result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 10 results
 
 ## Issue log
 

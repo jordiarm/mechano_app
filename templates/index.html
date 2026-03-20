@@ -20,8 +20,15 @@
                 <button class="nav-tab" data-view="games">games</button>
                 <button class="nav-tab" data-view="learn">learn</button>
                 <button class="nav-tab" data-view="stats">stats</button>
+                <button class="nav-tab" data-view="leaderboard">leaderboard</button>
                 <button class="nav-tab" data-view="settings">settings</button>
             </nav>
+            <div class="user-info">
+                <span class="user-info-name">{{ username }}</span>
+                <form method="POST" action="/logout" class="user-info-logout">
+                    <button class="btn btn-ghost btn-sm" type="submit">logout</button>
+                </form>
+            </div>
         </div>
     </header>
 
@@ -503,6 +510,49 @@
             </div>
         </div>
     </div>
+
+    <!-- LEADERBOARD VIEW -->
+    <section id="view-leaderboard" class="view">
+        <div class="container">
+            <div class="stats-header">
+                <h2>Leaderboard</h2>
+                <div class="stats-filter-bars">
+                    <div class="stats-duration-bar">
+                        <span class="config-label">mode</span>
+                        <button class="config-btn active" data-lb-mode="all">all</button>
+                        <button class="config-btn" data-lb-mode="words">words</button>
+                        <button class="config-btn" data-lb-mode="passage">passage</button>
+                        <button class="config-btn" data-lb-mode="code">code</button>
+                        <button class="config-btn" data-lb-mode="sudden_death">sudden death</button>
+                    </div>
+                    <div class="stats-duration-bar">
+                        <span class="config-label">duration</span>
+                        <button class="config-btn" data-lb-duration="15">15s</button>
+                        <button class="config-btn" data-lb-duration="30">30s</button>
+                        <button class="config-btn active" data-lb-duration="60">60s</button>
+                        <button class="config-btn" data-lb-duration="120">2m</button>
+                        <button class="config-btn" data-lb-duration="all">all</button>
+                    </div>
+                </div>
+            </div>
+            <div class="history-container">
+                <table class="history-table" id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>user</th>
+                            <th>best wpm</th>
+                            <th>avg wpm</th>
+                            <th>avg accuracy</th>
+                            <th>tests</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+                <div class="empty-state" id="leaderboard-empty">no data yet — take some tests!</div>
+            </div>
+        </div>
+    </section>
 
     <!-- SETTINGS VIEW -->
     <section id="view-settings" class="view">
