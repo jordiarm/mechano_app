@@ -33,6 +33,9 @@
                     <span class="config-label">mode</span>
                     <button class="config-btn active" data-mode="words">words</button>
                     <button class="config-btn" data-mode="passage">passage</button>
+                    <button class="config-btn" data-mode="code">code</button>
+                    <button class="config-btn" data-mode="sudden_death">sudden death</button>
+                    <button class="config-btn" data-mode="custom">custom</button>
                 </div>
                 <div class="config-separator"></div>
                 <div class="config-group">
@@ -108,6 +111,9 @@
                         <button class="config-btn active" data-stats-mode="all">all</button>
                         <button class="config-btn" data-stats-mode="words">words</button>
                         <button class="config-btn" data-stats-mode="passage">passage</button>
+                        <button class="config-btn" data-stats-mode="code">code</button>
+                        <button class="config-btn" data-stats-mode="sudden_death">sudden death</button>
+                        <button class="config-btn" data-stats-mode="custom">custom</button>
                     </div>
                     <div class="stats-duration-bar">
                         <span class="config-label">duration</span>
@@ -462,6 +468,26 @@
             </div>
         </div>
     </section>
+
+    <!-- CUSTOM TEXT OVERLAY -->
+    <div class="passage-select-overlay" id="custom-text-overlay">
+        <div class="passage-select-card">
+            <h3>Paste Your Text</h3>
+            <textarea id="custom-text-input" class="custom-text-input" rows="8" placeholder="Paste or type your text here..."></textarea>
+            <div class="custom-text-actions">
+                <button class="btn btn-primary" id="btn-custom-start">start typing</button>
+                <button class="btn btn-ghost" id="btn-custom-cancel">cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CODE SNIPPET SELECT OVERLAY -->
+    <div class="passage-select-overlay" id="code-select-overlay">
+        <div class="passage-select-card">
+            <h3>Select a Code Snippet</h3>
+            <div id="code-snippet-list"></div>
+        </div>
+    </div>
 
     <!-- PASSAGE SELECT OVERLAY -->
     <div class="passage-select-overlay" id="passage-select-overlay">

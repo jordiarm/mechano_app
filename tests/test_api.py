@@ -53,6 +53,39 @@ class TestPassages:
         assert "title" in data
 
 
+class TestCodeSnippets:
+    def test_get_all_code_snippets(self, client):
+        resp = client.get("/api/code-snippets")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "snippets" in data
+        assert len(data["snippets"]) > 0
+        snippet = data["snippets"][0]
+        assert "title" in snippet
+        assert "text" in snippet
+        assert "language" in snippet
+
+    def test_get_code_snippet_by_index(self, client):
+        resp = client.get("/api/code-snippet?index=0")
+        data = resp.get_json()
+        assert "title" in data
+        assert "text" in data
+        assert data["language"] == "python"
+
+    def test_get_code_snippet_invalid_index(self, client):
+        resp = client.get("/api/code-snippet?index=9999")
+        data = resp.get_json()
+        # Falls back to random snippet
+        assert "title" in data
+        assert "text" in data
+
+    def test_get_random_code_snippet(self, client):
+        resp = client.get("/api/code-snippet")
+        data = resp.get_json()
+        assert "title" in data
+        assert "text" in data
+
+
 class TestResults:
     def test_save_result(self, client):
         resp = client.post(

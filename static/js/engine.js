@@ -193,6 +193,10 @@
     const resultsOverlay = $("#results-overlay");
     const passageOverlay = $("#passage-select-overlay");
     const passageList = $("#passage-list");
+    const codeOverlay = $("#code-select-overlay");
+    const codeSnippetList = $("#code-snippet-list");
+    const customOverlay = $("#custom-text-overlay");
+    const customTextInput = $("#custom-text-input");
 
     // --- Char error buffer (sent to backend on finish) ---
     let charErrorBuffer = [];
@@ -274,10 +278,16 @@
     }
 
     async function loadText() {
-        if (state.mode === "words") {
+        if (state.mode === "words" || state.mode === "sudden_death") {
             const res = await fetch("/api/words?count=250");
             const data = await res.json();
             state.text = data.words;
+        } else if (state.mode === "code") {
+            // Text set via showCodeSelector -> loadCodeSnippet
+            return;
+        } else if (state.mode === "custom") {
+            // Text set via custom text overlay
+            return;
         }
         renderText();
     }
@@ -305,6 +315,46 @@
             passageList.appendChild(el);
         });
         passageOverlay.classList.add("active");
+    }
+
+    async function showCodeSelector() {
+        const res = await fetch("/api/code-snippets");
+        const data = await res.json();
+        codeSnippetList.innerHTML = "";
+        data.snippets.forEach((s, i) => {
+            const el = document.createElement("div");
+            el.className = "passage-option";
+            el.innerHTML = `
+                <div class="passage-option-title">${escapeHtml(s.title)}</div>
+                <div class="passage-option-preview">${escapeHtml(s.text.substring(0, 80))}...</div>
+            `;
+            el.addEventListener("click", () => loadCodeSnippet(i));
+            codeSnippetList.appendChild(el);
+        });
+        codeOverlay.classList.add("active");
+    }
+
+    async function loadCodeSnippet(index) {
+        const res = await fetch(`/api/code-snippet?index=${index}`);
+        const data = await res.json();
+        state.text = data.text;
+        codeOverlay.classList.remove("active");
+        renderText();
+    }
+
+    function showCustomTextOverlay() {
+        customTextInput.value = "";
+        customOverlay.classList.add("active");
+        customTextInput.focus();
+    }
+
+    function startCustomText() {
+        const text = customTextInput.value.trim();
+        if (!text) return;
+        // Normalize whitespace: collapse runs of whitespace into single spaces
+        state.text = text.replace(/\s+/g, " ");
+        customOverlay.classList.remove("active");
+        renderText();
     }
 
     function renderTextToDisplay(text, displayEl, inputEl, hintEl) {
@@ -411,6 +461,14 @@
             typingContainer.classList.add("error-flash");
             if (settings.screenShake) typingContainer.classList.add("screen-shake");
             setTimeout(() => typingContainer.classList.remove("error-flash", "screen-shake"), 150);
+
+            // Sudden death: one mistake = game over
+            if (state.mode === "sudden_death") {
+                state.currentIndex++;
+                updateLiveStats();
+                finishTest();
+                return;
+            }
         }
 
         state.currentIndex++;
@@ -1343,6 +1401,16 @@
                 return;
             }
 
+            if (codeOverlay.classList.contains("active")) {
+                if (e.key === "Escape") codeOverlay.classList.remove("active");
+                return;
+            }
+
+            if (customOverlay.classList.contains("active")) {
+                if (e.key === "Escape") customOverlay.classList.remove("active");
+                return;
+            }
+
             // Tab = restart (test mode only)
             if (e.key === "Tab" && $("#view-test").classList.contains("active")) {
                 e.preventDefault();
@@ -1380,6 +1448,10 @@
                 state.mode = btn.dataset.mode;
                 if (state.mode === "passage") {
                     showPassageSelector();
+                } else if (state.mode === "code") {
+                    showCodeSelector();
+                } else if (state.mode === "custom") {
+                    showCustomTextOverlay();
                 } else {
                     restart();
                 }
@@ -1417,10 +1489,20 @@
             }
         });
 
-        // Close passage overlay on outside click
+        // Close overlays on outside click
         passageOverlay.addEventListener("click", (e) => {
             if (e.target === passageOverlay) passageOverlay.classList.remove("active");
         });
+        codeOverlay.addEventListener("click", (e) => {
+            if (e.target === codeOverlay) codeOverlay.classList.remove("active");
+        });
+        customOverlay.addEventListener("click", (e) => {
+            if (e.target === customOverlay) customOverlay.classList.remove("active");
+        });
+
+        // Custom text events
+        $("#btn-custom-start").addEventListener("click", startCustomText);
+        $("#btn-custom-cancel").addEventListener("click", () => customOverlay.classList.remove("active"));
 
         // --- Weak keys events ---
         weakHiddenInput.addEventListener("input", handleWeakInput);

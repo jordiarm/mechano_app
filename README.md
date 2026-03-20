@@ -4,10 +4,17 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 
 ## Features
 
-- **Typing tests** — measure your WPM and accuracy
-- **Progressive lessons** — unlock new lessons by meeting accuracy thresholds (85-90%)
-- **Weak keys practice** — generates words weighted toward your most-missed characters
-- **Stats tracking** — all results stored locally in SQLite
+- **Typing tests** — measure your WPM and accuracy across multiple modes
+  - **Words** — random common English and programming words
+  - **Passage** — longer prose texts on tech topics
+  - **Code** — real code snippets in Python, JS, SQL, Shell, TypeScript, Go, Rust, and more
+  - **Sudden Death** — one mistake and the test is over
+  - **Custom** — paste your own text to practice with
+- **Progressive lessons** — 8 levels (32 lessons) from home row to real-world code patterns, unlocked by meeting accuracy thresholds (85-90%)
+- **Weak keys practice** — generates words weighted toward your most-missed characters from the last 5 tests
+- **Stats tracking** — WPM/accuracy charts, history table, filterable by mode and duration
+- **Effects** — keystroke particles, combo streaks, screen shake, sound effects (Web Audio API)
+- **Settings** — dark/light theme, toggle scanlines, sounds, particles, and screen shake
 
 ## Tech stack
 
@@ -35,9 +42,28 @@ Then open [http://localhost:5555](http://localhost:5555) in your browser.
 ## Project structure
 
 ```
-app.py                  # Flask app, API routes, lesson/word data, SQLite setup
-requirements.txt        # Flask dependency
-templates/index.html    # Single-page app (test, learn, stats views)
-static/css/style.css    # All styles
-static/js/engine.js     # Typing engine, lesson system, weak keys practice, effects
+app.py                        # Flask app, API routes, SQLite setup, helpers
+data/                         # Static data constants
+  __init__.py                 # Re-exports all data constants
+  words.py                    # WORD_POOL — English + programming word list
+  lessons.py                  # LESSONS — progressive typing lessons
+  passages.py                 # PASSAGES — longer prose texts
+  code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
+requirements.txt              # flask==3.1.0
+pyproject.toml                # Ruff and pytest configuration
+templates/index.html          # Single-page app (test, learn, stats views)
+static/css/style.css          # All styles
+static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
+tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
+tests/test_api.py             # API route tests (42 tests)
+.github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
+```
+
+## Development
+
+```bash
+ruff check .          # Lint
+ruff format --check . # Format check
+ruff format .         # Auto-format
+pytest -v             # Run tests (42 tests)
 ```
