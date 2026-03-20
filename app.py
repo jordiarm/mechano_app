@@ -1690,8 +1690,17 @@ def get_results():
     db = get_db()
     limit = request.args.get("limit", 50, type=int)
     duration = request.args.get("duration", None, type=int)
-    where = "WHERE duration = ?" if duration else ""
-    params = (duration, limit) if duration else (limit,)
+    mode = request.args.get("mode", None, type=str)
+    clauses = []
+    params = []
+    if duration:
+        clauses.append("duration = ?")
+        params.append(duration)
+    if mode:
+        clauses.append("mode = ?")
+        params.append(mode)
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    params.append(limit)
     rows = db.execute(
         f"SELECT * FROM results {where} ORDER BY created_at DESC LIMIT ?",
         params,
@@ -1704,8 +1713,17 @@ def get_results():
 def get_stats():
     db = get_db()
     duration = request.args.get("duration", None, type=int)
-    where = "WHERE duration = ?" if duration else ""
-    params = (duration,) if duration else ()
+    mode = request.args.get("mode", None, type=str)
+    clauses = []
+    params = []
+    if duration:
+        clauses.append("duration = ?")
+        params.append(duration)
+    if mode:
+        clauses.append("mode = ?")
+        params.append(mode)
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    params = tuple(params)
     row = db.execute(
         f"""
         SELECT

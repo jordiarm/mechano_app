@@ -542,6 +542,12 @@ body.no-scanlines::after {
     color: var(--text-primary);
 }
 
+.stats-filter-bars {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
 .stats-duration-bar {
     display: flex;
     align-items: center;
