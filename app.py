@@ -103,7 +103,7 @@ def _build_results_filter():
 _WEAK_KEYS_SQL = """
     SELECT LOWER(expected_char) as ch, COUNT(*) as miss_count
     FROM char_errors
-    WHERE result_id IN (SELECT id FROM results ORDER BY id DESC LIMIT 5)
+    WHERE result_id IN (SELECT id FROM results ORDER BY id DESC LIMIT 10)
       AND (expected_char BETWEEN 'a' AND 'z'
            OR expected_char BETWEEN 'A' AND 'Z')
     GROUP BY LOWER(expected_char)
@@ -209,7 +209,7 @@ def get_stats():
         params,
     ).fetchone()
     recent = db.execute(
-        f"SELECT wpm, accuracy, streak, created_at FROM results {where} ORDER BY created_at DESC LIMIT 30",
+        f"SELECT wpm, accuracy, streak, created_at FROM results {where} ORDER BY created_at DESC LIMIT 20",
         params,
     ).fetchall()
     stats = dict(row)
