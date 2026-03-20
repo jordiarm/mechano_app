@@ -65,7 +65,7 @@ pytest -v             # Run tests
 - Games tab follows the learn tab pattern: browser view with cards → active game view with typing container → results overlay
 - All data (test results, lesson progress, character errors) is stored in SQLite locally — no auth, no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
-- Weak keys practice generates words weighted toward the user's most-missed characters from the last 5 tests (scoped via `result_id` FK on `char_errors`)
+- Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`)
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
@@ -77,7 +77,7 @@ pytest -v             # Run tests
 
 - `results` — test results (WPM, accuracy, errors, streak, duration, mode)
 - `lesson_progress` — per-lesson attempts with pass/fail
-- `char_errors` — every individual character miss (result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 5 results
+- `char_errors` — every individual character miss (result_id FK, expected vs typed), used for weak keys analysis; queries filter to last 10 results
 
 ## Issue log
 
