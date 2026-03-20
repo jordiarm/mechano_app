@@ -768,6 +768,36 @@ body.no-scanlines::after {
     white-space: nowrap;
 }
 
+/* ===== CUSTOM TEXT ===== */
+.custom-text-input {
+    width: 100%;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+}
+
+.custom-text-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.custom-text-input::placeholder {
+    color: var(--text-muted);
+}
+
+.custom-text-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
 /* ===== EFFECTS ===== */
 .keystroke-particle {
     position: fixed;

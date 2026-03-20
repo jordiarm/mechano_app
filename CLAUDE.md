@@ -2,6 +2,11 @@
 
 Typing speed tracker and training app built with Flask.
 
+## Engineering standards
+
+- Act as a **staff software engineer with 10+ years of experience**. Always find the optimal solution before implementation. Keep performance in mind at every step.
+- **Always adhere to coding best practices** — clean code, proper naming, DRY, separation of concerns, consistent style. This applies to both code quality and project structure. Proactively identify and fix structural issues.
+
 ## Tech stack
 
 - **Backend**: Python / Flask, SQLite (`mechano.db`)
@@ -11,14 +16,20 @@ Typing speed tracker and training app built with Flask.
 ## Project structure
 
 ```
-app.py                        # Flask app, API routes, lesson/word data, SQLite setup
+app.py                        # Flask app, API routes, SQLite setup, helpers
+data/                         # Static data constants (extracted from app.py)
+  __init__.py                 # Re-exports all data constants
+  words.py                    # WORD_POOL — English + programming word list
+  lessons.py                  # LESSONS — progressive typing lessons
+  passages.py                 # PASSAGES — longer prose texts
+  code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
 requirements.txt              # flask==3.1.0
 pyproject.toml                # Ruff and pytest configuration
 templates/index.html          # Single-page app (test, learn, stats views)
 static/css/style.css          # All styles
 static/js/engine.js           # Typing engine, lesson system, weak keys practice, effects
 tests/conftest.py             # Pytest fixtures (test client, temp DB, seed data)
-tests/test_api.py             # API route tests (38 tests)
+tests/test_api.py             # API route tests (42 tests)
 .github/workflows/ci.yml     # CI pipeline (lint + test on push/PR to main)
 ```
 
@@ -49,6 +60,8 @@ pytest -v             # Run tests
 
 ## Key design decisions
 
+- Static data (words, lessons, passages, code snippets) lives in `data/` module, keeping `app.py` focused on routes and logic
+- Test modes: words, passage, code (real code snippets), sudden_death (one mistake = game over), custom (user-pasted text)
 - All data (test results, lesson progress, character errors) is stored in SQLite locally — no auth, no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
 - Weak keys practice generates words weighted toward the user's most-missed characters from the last 5 tests (scoped via `result_id` FK on `char_errors`)
