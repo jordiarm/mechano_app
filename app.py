@@ -1600,9 +1600,11 @@ def init_db():
     db.execute("""
         CREATE TABLE IF NOT EXISTS char_errors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            result_id INTEGER,
             expected_char TEXT NOT NULL,
             typed_char TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (result_id) REFERENCES results(id)
         )
     """)
     db.execute("""
@@ -1618,6 +1620,10 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Migrate: add result_id to char_errors if missing
+    columns = [row[1] for row in db.execute("PRAGMA table_info(char_errors)").fetchall()]
+    if "result_id" not in columns:
+        db.execute("ALTER TABLE char_errors ADD COLUMN result_id INTEGER REFERENCES results(id)")
     db.commit()
     db.close()
 
@@ -1667,7 +1673,7 @@ def get_passage():
 def save_result():
     data = request.get_json()
     db = get_db()
-    db.execute(
+    cursor = db.execute(
         """INSERT INTO results (wpm, accuracy, errors, total_chars, correct_chars, streak, duration, mode)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         (
@@ -1681,8 +1687,9 @@ def save_result():
             data["mode"],
         ),
     )
+    result_id = cursor.lastrowid
     db.commit()
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "id": result_id})
 
 
 @app.route("/api/results", methods=["GET"])
@@ -1827,10 +1834,11 @@ def save_char_errors():
     errors = data.get("errors", [])
     if not errors:
         return jsonify({"status": "ok"})
+    result_id = data.get("result_id")
     db = get_db()
     db.executemany(
-        "INSERT INTO char_errors (expected_char, typed_char) VALUES (?, ?)",
-        [(err["expected"], err["typed"]) for err in errors],
+        "INSERT INTO char_errors (result_id, expected_char, typed_char) VALUES (?, ?, ?)",
+        [(result_id, err["expected"], err["typed"]) for err in errors],
     )
     db.commit()
     return jsonify({"status": "ok"})
@@ -1842,8 +1850,9 @@ def get_weak_keys():
     rows = db.execute("""
         SELECT expected_char, COUNT(*) as miss_count
         FROM char_errors
-        WHERE expected_char BETWEEN 'a' AND 'z'
-           OR expected_char BETWEEN 'A' AND 'Z'
+        WHERE result_id IN (SELECT id FROM results ORDER BY id DESC LIMIT 5)
+          AND (expected_char BETWEEN 'a' AND 'z'
+               OR expected_char BETWEEN 'A' AND 'Z')
         GROUP BY LOWER(expected_char)
         ORDER BY miss_count DESC
         LIMIT 10
@@ -1859,8 +1868,9 @@ def get_weak_keys_practice():
     rows = db.execute("""
         SELECT LOWER(expected_char) as ch, COUNT(*) as miss_count
         FROM char_errors
-        WHERE expected_char BETWEEN 'a' AND 'z'
-           OR expected_char BETWEEN 'A' AND 'Z'
+        WHERE result_id IN (SELECT id FROM results ORDER BY id DESC LIMIT 5)
+          AND (expected_char BETWEEN 'a' AND 'z'
+               OR expected_char BETWEEN 'A' AND 'Z')
         GROUP BY LOWER(expected_char)
         ORDER BY miss_count DESC
         LIMIT 6

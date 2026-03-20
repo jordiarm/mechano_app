@@ -201,14 +201,14 @@
         charErrorBuffer.push({ expected, typed });
     }
 
-    async function flushCharErrors() {
+    async function flushCharErrors(resultId) {
         if (charErrorBuffer.length === 0) return;
         const errors = charErrorBuffer.splice(0);
         try {
             await fetch("/api/char-errors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ errors }),
+                body: JSON.stringify({ errors, result_id: resultId }),
             });
         } catch (_) {}
     }
@@ -521,8 +521,9 @@
         resultsOverlay.classList.add("active");
 
         // Save to backend
+        let resultId = null;
         try {
-            await fetch("/api/results", {
+            const res = await fetch("/api/results", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -536,9 +537,11 @@
                     mode: state.mode,
                 }),
             });
+            const resData = await res.json();
+            resultId = resData.id;
         } catch (_) {}
 
-        await flushCharErrors();
+        await flushCharErrors(resultId);
         await loadPreviousBests();
     }
 
