@@ -966,6 +966,54 @@ body.no-scanlines::after {
 }
 
 /* ===== LEADERBOARD ===== */
+.score-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--text-muted);
+    border: 1px solid var(--text-muted);
+    border-radius: 50%;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 6px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.score-info-icon:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.score-info-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: 400;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    z-index: 100;
+    line-height: 1.5;
+}
+
+.score-info-icon:hover .score-info-tooltip {
+    display: block;
+}
+
 .leaderboard-you td {
     background: var(--accent-dim);
 }

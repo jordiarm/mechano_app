@@ -791,8 +791,9 @@
                 <tr class="${isYou ? "leaderboard-you" : ""}">
                     <td style="color: ${rankColor(i)}">${rankLabel(i)}</td>
                     <td style="color: ${isYou ? "var(--accent)" : "var(--text-primary)"};font-weight:${isYou ? "600" : "400"}">${e.username}${youTag}</td>
-                    <td style="color: var(--neon-cyan)">${Math.round(e.best_wpm)}</td>
-                    <td style="color: var(--accent)">${Math.round(e.avg_wpm)}</td>
+                    <td style="color: var(--neon-cyan)">${Math.round(e.avg_score)}</td>
+                    <td style="color: var(--accent)">${Math.round(e.best_score)}</td>
+                    <td style="color: var(--neon-yellow)">${Math.round(e.best_wpm)}</td>
                     <td style="color: var(--green)">${Math.round(e.avg_accuracy)}%</td>
                     <td style="color: var(--text-muted)">${e.total_tests}</td>
                 </tr>`;
@@ -813,7 +814,7 @@
             const res = await apiFetch(`/api/stats${query}`);
             const data = await res.json();
 
-            $("#stat-best-kps").textContent = data.best_kps.toFixed(1);
+            $("#stat-best-score").textContent = Math.round(data.best_score);
             $("#stat-avg-wpm").textContent = Math.round(data.avg_wpm);
             $("#stat-best-wpm").textContent = Math.round(data.best_wpm);
             $("#stat-avg-accuracy").textContent = Math.round(data.avg_accuracy);

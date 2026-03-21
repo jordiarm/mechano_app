@@ -352,7 +352,7 @@ def get_stats():
             COALESCE(AVG(accuracy), 0) as avg_accuracy,
             COALESCE(MAX(streak), 0) as best_streak,
             COALESCE(AVG(total_chars * 1.0 / duration), 0) as avg_kps,
-            COALESCE(MAX(total_chars * 1.0 / duration), 0) as best_kps
+            COALESCE(ROUND(MAX(wpm * (accuracy / 100.0) * (accuracy / 100.0)), 1), 0) as best_score
         FROM (SELECT * FROM results {where} ORDER BY created_at DESC LIMIT 60)
     """,
         params,
@@ -492,15 +492,16 @@ def get_leaderboard():
         f"""
         SELECT
             u.username,
+            COALESCE(ROUND(AVG(r.wpm * (r.accuracy / 100.0) * (r.accuracy / 100.0)), 1), 0) as avg_score,
+            COALESCE(ROUND(MAX(r.wpm * (r.accuracy / 100.0) * (r.accuracy / 100.0)), 1), 0) as best_score,
             COALESCE(MAX(r.wpm), 0) as best_wpm,
-            COALESCE(ROUND(AVG(r.wpm), 1), 0) as avg_wpm,
             COALESCE(ROUND(AVG(r.accuracy), 1), 0) as avg_accuracy,
             COUNT(*) as total_tests
         FROM results r
         JOIN users u ON r.user_id = u.id
         {where}
         GROUP BY r.user_id, u.username
-        ORDER BY best_wpm DESC
+        ORDER BY avg_score DESC
         LIMIT 100
         """,
         params,

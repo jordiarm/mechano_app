@@ -236,8 +236,8 @@
                     <div class="stat-card-label">best wpm</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-value neon-violet" id="stat-best-kps">0</div>
-                    <div class="stat-card-label">best keys/sec</div>
+                    <div class="stat-card-value neon-violet" id="stat-best-score">0</div>
+                    <div class="stat-card-label">best score</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-card-value neon-orange" id="stat-best-streak">0</div>
@@ -515,7 +515,7 @@
     <section id="view-leaderboard" class="view">
         <div class="container">
             <div class="stats-header">
-                <h2>Leaderboard</h2>
+                <h2>Leaderboard <span class="score-info-icon">i<span class="score-info-tooltip">Score = WPM &times; (Accuracy / 100)&sup2;<br><br>Players are ranked by their average score across all tests. A higher accuracy has more impact than raw speed.</span></span></h2>
                 <div class="stats-filter-bars">
                     <div class="stats-duration-bar">
                         <span class="config-label">mode</span>
@@ -541,8 +541,9 @@
                         <tr>
                             <th>#</th>
                             <th>user</th>
+                            <th>score</th>
+                            <th>best score</th>
                             <th>best wpm</th>
-                            <th>avg wpm</th>
                             <th>avg accuracy</th>
                             <th>tests</th>
                         </tr>

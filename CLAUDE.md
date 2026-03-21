@@ -73,7 +73,7 @@ pytest -v             # Run tests
 - Sound effects use Web Audio API (no audio files)
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
 - Stats overview cards and charts are scoped to the last 60 tests (not all-time); `/api/stats` aggregates via a subquery with `LIMIT 60`
-- Stats cards: avg WPM, best WPM, avg accuracy, avg keys/sec, best keys/sec, best streak; `avg_kps` and `best_kps` are computed as `total_chars / duration`
+- Stats cards: avg WPM, best WPM, avg accuracy, avg keys/sec, best score, best streak; `avg_kps` is computed as `total_chars / duration`; `best_score` is computed as `MAX(wpm * (accuracy/100)²)`
 - Leaderboard view (`/api/leaderboard`) ranks all users by best WPM (GROUP BY user, ORDER BY MAX(wpm) DESC, LIMIT 100); supports the same `?duration=` and `?mode=` filters as stats; returns `current_user` so the client can highlight the logged-in user's row; top 3 rows styled gold/silver/bronze
 - `WORD_POOL` is deduplicated; lesson lookups use pre-built dicts (`_LESSON_BY_ID`, `_ALL_LESSON_IDS`) for O(1) access
 - `char_errors` bulk insert uses `executemany`; `get_results`/`get_stats` use parameterized WHERE clauses instead of duplicated SQL branches

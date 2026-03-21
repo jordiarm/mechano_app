@@ -490,6 +490,8 @@ class TestLeaderboard:
         assert len(lb) == 1
         assert lb[0]["username"] == "testuser"
         assert lb[0]["best_wpm"] == 75.0
+        assert lb[0]["avg_score"] == 63.1
+        assert lb[0]["best_score"] == 72.0
         assert lb[0]["total_tests"] == 2
 
     def test_leaderboard_filtered_by_duration(self, auth_client, seed_results):
@@ -497,12 +499,15 @@ class TestLeaderboard:
         data = resp.get_json()
         assert len(data["leaderboard"]) == 1
         assert data["leaderboard"][0]["best_wpm"] == 75.0
+        assert data["leaderboard"][0]["avg_score"] == 63.1
 
     def test_leaderboard_filtered_by_mode(self, auth_client, seed_results):
         resp = auth_client.get("/api/leaderboard?mode=words")
         data = resp.get_json()
         assert len(data["leaderboard"]) == 1
         assert data["leaderboard"][0]["best_wpm"] == 60.0
+        # words only: 60 * (95/100)^2 = 54.15 → rounds to 54.1
+        assert data["leaderboard"][0]["best_score"] == 54.1
 
     def test_leaderboard_no_match_filter(self, auth_client, seed_results):
         resp = auth_client.get("/api/leaderboard?duration=15")
