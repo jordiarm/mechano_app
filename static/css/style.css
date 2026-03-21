@@ -183,6 +183,31 @@ body.no-scanlines::after {
     color: var(--green);
 }
 
+.footer {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 0;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+}
+
+.footer-link {
+    color: var(--text-muted);
+    transition: color var(--transition), filter var(--transition);
+    display: inline-flex;
+}
+
+.footer-link:hover {
+    color: var(--text-primary);
+    filter: drop-shadow(0 0 6px var(--accent));
+}
+
+.footer-icon {
+    width: 22px;
+    height: 22px;
+}
+
 @keyframes blink {
     50% { opacity: 0; }
 }
