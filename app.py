@@ -495,6 +495,7 @@ def get_leaderboard():
             COALESCE(ROUND(AVG(r.wpm * (r.accuracy / 100.0) * (r.accuracy / 100.0)), 1), 0) as avg_score,
             COALESCE(ROUND(MAX(r.wpm * (r.accuracy / 100.0) * (r.accuracy / 100.0)), 1), 0) as best_score,
             COALESCE(MAX(r.wpm), 0) as best_wpm,
+            COALESCE(ROUND(AVG(r.wpm), 1), 0) as avg_wpm,
             COALESCE(ROUND(AVG(r.accuracy), 1), 0) as avg_accuracy,
             COUNT(*) as total_tests
         FROM results r
