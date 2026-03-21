@@ -10,11 +10,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <div class="bg-ambience" aria-hidden="true"></div>
 
     <!-- HEADER -->
     <header class="header">
         <div class="container header-inner">
-            <div class="logo">~/mechano_app<span class="cursor">_</span></div>
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <rect x="1" y="4" width="30" height="24" rx="5" fill="var(--accent)" opacity="0.15" stroke="var(--accent)" stroke-width="1.5"/>
+                    <path d="M8 13l5 4-5 4" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="16" y1="21" x2="23" y2="21" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                ~/mechano_app<span class="cursor">_</span>
+            </div>
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-view="test">test</button>
                 <button class="nav-tab" data-view="games">games</button>
@@ -544,6 +552,7 @@
                             <th>score</th>
                             <th>best score</th>
                             <th>best wpm</th>
+                            <th>avg wpm</th>
                             <th>avg accuracy</th>
                             <th>tests</th>
                         </tr>

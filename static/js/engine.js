@@ -794,6 +794,7 @@
                     <td style="color: var(--neon-cyan)">${Math.round(e.avg_score)}</td>
                     <td style="color: var(--accent)">${Math.round(e.best_score)}</td>
                     <td style="color: var(--neon-yellow)">${Math.round(e.best_wpm)}</td>
+                    <td style="color: var(--yellow)">${Math.round(e.avg_wpm)}</td>
                     <td style="color: var(--green)">${Math.round(e.avg_accuracy)}%</td>
                     <td style="color: var(--text-muted)">${e.total_tests}</td>
                 </tr>`;
