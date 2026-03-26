@@ -10,6 +10,7 @@ Typing speed tracker and training app built with Flask.
 ## Tech stack
 
 - **Backend**: Python / Flask, SQLite (`mechano.db`)
+- **AI**: OpenAI Agents SDK (`openai-agents`), `gpt-4o-mini`
 - **Frontend**: Vanilla JS, CSS (dark terminal-inspired theme)
 - **Fonts**: JetBrains Mono (loaded from Google Fonts)
 
@@ -17,13 +18,15 @@ Typing speed tracker and training app built with Flask.
 
 ```
 app.py                        # Flask app, API routes, auth, SQLite setup, helpers
+ai_agent.py                   # OpenAI Agents SDK — practice text generation agent
 data/                         # Static data constants (extracted from app.py)
   __init__.py                 # Re-exports all data constants
   words.py                    # WORD_POOL — 2,278 English + programming words
   lessons.py                  # LESSONS — progressive typing lessons
   passages.py                 # PASSAGES — 31 longer prose texts
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
-requirements.txt              # flask==3.1.0
+requirements.txt              # flask, openai-agents, python-dotenv
+.env                          # OPENAI_API_KEY (not committed)
 pyproject.toml                # Ruff and pytest configuration
 templates/auth.html           # Login and registration page
 templates/index.html          # Single-page app (test, learn, stats, leaderboard views)
@@ -37,11 +40,10 @@ tests/test_api.py             # API route tests (61 tests)
 ## Running
 
 ```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv sync
+echo 'OPENAI_API_KEY=sk-...' > .env
 export SECRET_KEY="your-secret-key"  # optional, defaults to dev key
-python app.py
+uv run python app.py
 # Open http://localhost:5555
 ```
 
@@ -54,10 +56,10 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR to `main`:
 ## Linting and testing
 
 ```bash
-ruff check .          # Lint
-ruff format --check . # Format check
-ruff format .         # Auto-format
-pytest -v             # Run tests
+uv run ruff check .          # Lint
+uv run ruff format --check . # Format check
+uv run ruff format .         # Auto-format
+uv run pytest -v             # Run tests
 ```
 
 ## Key design decisions
@@ -69,6 +71,7 @@ pytest -v             # Run tests
 - All data (test results, lesson progress, character errors) is stored in SQLite locally — no remote backend
 - Lessons unlock progressively; passing requires accuracy threshold (85-90%), no WPM gate
 - Weak keys practice generates words weighted toward the user's most-missed characters from the last 10 tests (scoped via `result_id` FK on `char_errors`); practice text is deduplicated via `random.sample` (no repeated words)
+- AI-powered weak keys practice (`/api/weak-keys/ai-practice`) uses the OpenAI Agents SDK to generate coherent sentences emphasising the user's weak characters; the agent is defined in `ai_agent.py` and uses `gpt-4o-mini`; the frontend tracks `weak.aiGenerated` so retry/restart calls the correct generator
 - Typing containers use a 3-line sliding window (translateY) instead of scrolling
 - Sound effects use Web Audio API (no audio files)
 - Stats view filters by test duration via a toggle bar (15s/30s/60s/2m/all, default 60s) and by mode (all/words/passage, default all); `/api/stats` and `/api/results` accept optional `?duration=` and `?mode=` query params, combinable
@@ -107,3 +110,9 @@ pytest -v             # Run tests
 - **What:** After adding `result_id` FK column to `char_errors`, the weak keys section silently disappeared. The `/api/weak-keys` query failed because the `result_id` column didn't exist in the running database, and the JS `try/catch` swallowed the error.
 - **Why:** `CREATE TABLE IF NOT EXISTS` skips entirely when the table already exists — it does not diff the schema or add missing columns. The existing `mechano.db` kept the old schema without `result_id`.
 - **Fix:** Added an auto-migration in `init_db()` that checks `PRAGMA table_info(char_errors)` for the `result_id` column and runs `ALTER TABLE` if missing. Lesson: whenever adding columns to existing tables, always add a migration step — `CREATE TABLE IF NOT EXISTS` is only for first-time creation.
+
+### 2026-03-26 — AI practice retry reverted to non-AI text
+
+- **What:** After finishing an AI-generated weak keys practice and clicking retry (or pressing Enter), the next session used the regular word-pool text instead of generating new AI text.
+- **Why:** The retry handler (`btn-retry` click and Enter key shortcut) unconditionally called `startWeakPractice()` without checking whether the session was AI-generated.
+- **Fix:** Added `weak.aiGenerated` flag to the weak keys state. Set it in `startWeakPractice()` (false) and `startAiPractice()` (true). Both retry paths now check the flag to call the correct function.

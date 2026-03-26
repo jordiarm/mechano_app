@@ -1,13 +1,18 @@
+import asyncio
 import os
 import random
 import sqlite3
 from functools import wraps
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from ai_agent import generate_practice_text
 from data import CODE_SNIPPETS, LESSONS, PASSAGES, WORD_POOL
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -561,6 +566,26 @@ def get_weak_keys_practice():
             "has_data": True,
         }
     )
+
+
+@app.route("/api/weak-keys/ai-practice", methods=["POST"])
+@login_required
+def get_weak_keys_ai_practice():
+    """Generate AI-powered practice text targeting the user's weakest keys."""
+    db = get_db()
+    rows = db.execute(_WEAK_KEYS_SQL, (current_user_id(), 6)).fetchall()
+
+    if not rows:
+        return jsonify({"text": "", "weak_keys": [], "has_data": False})
+
+    weak_list = [{"char": row["ch"], "count": row["miss_count"]} for row in rows]
+
+    try:
+        text = asyncio.run(generate_practice_text(weak_list))
+    except Exception:
+        return jsonify({"error": "AI generation failed"}), 502
+
+    return jsonify({"text": text, "weak_keys": weak_list, "has_data": True})
 
 
 if __name__ == "__main__":

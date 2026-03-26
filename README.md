@@ -15,6 +15,7 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 - **Learn** — progressive lessons and targeted practice
   - **Lessons** — 8 levels (32 lessons) from home row to real-world code patterns, unlocked by meeting accuracy thresholds (85-90%)
   - **Weak keys** — generates words weighted toward your most-missed characters from the last 5 tests
+  - **AI practice** — uses the OpenAI Agents SDK to generate coherent practice sentences targeting your weak keys
 - **Stats** — best/avg WPM, keys/sec, accuracy, and streak cards; WPM and accuracy charts over last 60 tests; history table, filterable by mode and duration
 - **Leaderboard** — global ranking of all users by best WPM, with gold/silver/bronze highlights for top 3; filterable by mode and duration; your row is highlighted
 - **Settings** — dark/light theme, toggle scanlines, sounds, particles, and screen shake
@@ -23,6 +24,7 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 ## Tech stack
 
 - **Backend**: Python / Flask, SQLite
+- **AI**: OpenAI Agents SDK (`openai-agents`), `gpt-4o-mini`
 - **Frontend**: Vanilla JS, CSS, JetBrains Mono font
 
 ## Getting started
@@ -32,16 +34,17 @@ A typing speed tracker and training app with a dark terminal-inspired theme.
 git clone https://github.com/jordiarmentia/mechano_app.git
 cd mechano_app
 
-# Create a virtual environment and install dependencies
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Install dependencies
+uv sync
+
+# Set your OpenAI API key for AI practice text generation
+echo 'OPENAI_API_KEY=sk-...' > .env
 
 # (Optional) Set a secret key for session security
 export SECRET_KEY="your-secret-key"
 
 # Run the app
-python app.py
+uv run python app.py
 ```
 
 Then open [http://localhost:5555](http://localhost:5555) in your browser.
@@ -50,13 +53,15 @@ Then open [http://localhost:5555](http://localhost:5555) in your browser.
 
 ```
 app.py                        # Flask app, API routes, auth, SQLite setup, helpers
+ai_agent.py                   # OpenAI Agents SDK — practice text generation agent
 data/                         # Static data constants
   __init__.py                 # Re-exports all data constants
   words.py                    # WORD_POOL — 2,278 English + programming words
   lessons.py                  # LESSONS — progressive typing lessons
   passages.py                 # PASSAGES — 31 longer prose texts
   code_snippets.py            # CODE_SNIPPETS — real code from multiple languages
-requirements.txt              # flask==3.1.0
+requirements.txt              # flask, openai-agents, python-dotenv
+.env                          # OPENAI_API_KEY (not committed)
 pyproject.toml                # Ruff and pytest configuration
 templates/auth.html           # Login and registration page
 templates/index.html          # Single-page app (test, learn, stats, leaderboard views)
@@ -70,10 +75,10 @@ tests/test_api.py             # API route tests (61 tests)
 ## Development
 
 ```bash
-ruff check .          # Lint
-ruff format --check . # Format check
-ruff format .         # Auto-format
-pytest -v             # Run tests (61 tests)
+uv run ruff check .          # Lint
+uv run ruff format --check . # Format check
+uv run ruff format .         # Auto-format
+uv run pytest -v             # Run tests (61 tests)
 ```
 
 ## CI Pipeline

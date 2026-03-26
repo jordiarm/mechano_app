@@ -1331,6 +1331,7 @@
 
     let weak = {
         active: false,
+        aiGenerated: false,
         text: "",
         chars: [],
         currentIndex: 0,
@@ -1365,40 +1366,64 @@
         }
     }
 
+    function launchWeakPractice(data) {
+        weak.active = true;
+        weak.text = data.text;
+        weak.chars = data.text.split("");
+        weak.currentIndex = 0;
+        weak.errors = 0;
+        weak.correctChars = 0;
+        weak.totalTyped = 0;
+        weak.streak = 0;
+        weak.bestStreak = 0;
+        weak.started = false;
+        weak.finished = false;
+        weak.startTime = null;
+        clearInterval(weak.timerInterval);
+        weak.timeLeft = weak.duration;
+
+        // Show weak key tags in header
+        const keysEl = $("#weak-practice-keys");
+        keysEl.innerHTML = data.weak_keys.map((k) =>
+            `<span class="key-tag">${escapeHtml(k.char)}</span>`
+        ).join("");
+
+        renderWeakText();
+
+        weakSection.style.display = "none";
+        lessonBrowser.style.display = "none";
+        weakPracticeActive.style.display = "block";
+        weakHiddenInput.focus();
+    }
+
     async function startWeakPractice() {
         try {
             const res = await apiFetch("/api/weak-keys/practice");
             const data = await res.json();
             if (!data.has_data) return;
-
-            weak.active = true;
-            weak.text = data.text;
-            weak.chars = data.text.split("");
-            weak.currentIndex = 0;
-            weak.errors = 0;
-            weak.correctChars = 0;
-            weak.totalTyped = 0;
-            weak.streak = 0;
-            weak.bestStreak = 0;
-            weak.started = false;
-            weak.finished = false;
-            weak.startTime = null;
-            clearInterval(weak.timerInterval);
-            weak.timeLeft = weak.duration;
-
-            // Show weak key tags in header
-            const keysEl = $("#weak-practice-keys");
-            keysEl.innerHTML = data.weak_keys.map((k) =>
-                `<span class="key-tag">${escapeHtml(k.char)}</span>`
-            ).join("");
-
-            renderWeakText();
-
-            weakSection.style.display = "none";
-            lessonBrowser.style.display = "none";
-            weakPracticeActive.style.display = "block";
-            weakHiddenInput.focus();
+            weak.aiGenerated = false;
+            launchWeakPractice(data);
         } catch (_) {}
+    }
+
+    async function startAiPractice() {
+        const btn = $("#btn-start-ai-practice");
+        const label = btn.querySelector(".ai-btn-label");
+        const loading = btn.querySelector(".ai-btn-loading");
+        btn.disabled = true;
+        label.style.display = "none";
+        loading.style.display = "inline";
+        try {
+            const res = await apiFetch("/api/weak-keys/ai-practice", { method: "POST" });
+            const data = await res.json();
+            if (!data.has_data) return;
+            weak.aiGenerated = true;
+            launchWeakPractice(data);
+        } catch (_) {} finally {
+            btn.disabled = false;
+            label.style.display = "inline";
+            loading.style.display = "none";
+        }
     }
 
     function renderWeakText() {
@@ -1833,7 +1858,7 @@
             if (resultsOverlay.classList.contains("active")) {
                 if (e.key === "Enter") {
                     e.preventDefault();
-                    if (weak.active) { resultsOverlay.classList.remove("active"); startWeakPractice(); }
+                    if (weak.active) { resultsOverlay.classList.remove("active"); if (weak.aiGenerated) { startAiPractice(); } else { startWeakPractice(); } }
                     else { restart(); }
                 }
                 if (e.key === "Escape") {
@@ -1926,7 +1951,7 @@
         $("#btn-retry").addEventListener("click", () => {
             if (weak.active) {
                 resultsOverlay.classList.remove("active");
-                startWeakPractice();
+                if (weak.aiGenerated) { startAiPractice(); } else { startWeakPractice(); }
             } else {
                 restart();
             }
@@ -1987,6 +2012,7 @@
         weakHiddenInput.addEventListener("input", handleWeakInput);
         weakTypingContainer.addEventListener("click", () => weakHiddenInput.focus());
         $("#btn-start-weak-practice").addEventListener("click", startWeakPractice);
+        $("#btn-start-ai-practice").addEventListener("click", startAiPractice);
         $("#btn-weak-back").addEventListener("click", exitWeakPractice);
 
         // --- Lesson events ---
