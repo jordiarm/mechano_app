@@ -1627,6 +1627,40 @@ body.no-scanlines::after {
     margin-bottom: 14px;
 }
 
+.weak-keys-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-ai {
+    background: linear-gradient(135deg, var(--purple), var(--neon-violet));
+    color: #fff;
+    border-color: var(--purple);
+    font-weight: 600;
+}
+
+.btn-ai:hover {
+    box-shadow: 0 0 20px rgba(188, 140, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-ai:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.ai-btn-loading {
+    animation: pulse-text 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* ===== SETTINGS VIEW ===== */
 .settings-header {
     margin-bottom: 24px;

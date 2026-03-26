@@ -3,7 +3,9 @@ name = "mechano-app"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
+    "dotenv>=0.9.9",
     "flask>=3.1.3",
+    "openai-agents>=0.13.1",
 ]
 
 [tool.ruff]
@@ -16,3 +18,8 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
